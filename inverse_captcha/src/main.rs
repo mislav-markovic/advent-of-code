@@ -2,8 +2,12 @@ fn main() {
     let input = read_input();
 
     let vec: Vec<i32> = input.chars().map(|a| a.to_string().parse::<i32>().unwrap()).collect();
-    let sum = vec.iter().enumerate().filter(|a| matches_next(&vec, a.0)).fold(0, |sum, x| sum+x.1);
-    println!("{}", sum);
+    let next_sum = vec.iter().enumerate().filter(|a| matches_next(&vec, a.0)).fold(0, |sum, x| sum+x.1);
+    let around_sum = vec.iter().enumerate().filter(|a| matches_around(&vec, a.0)).fold(0, |sum, x| sum+x.1);
+
+    
+    println!("Sum when using matches next {}", next_sum);
+    println!("Sum when using matches halfway around {}", around_sum);
 
 }
 
@@ -15,6 +19,10 @@ fn matches_next(vec: &Vec<i32>, n: usize) -> bool{
     } else {
         vec[n] == vec[n+1]
     }
+}
+
+fn matches_around(vec: &Vec<i32>, n: usize) -> bool {
+    vec[n] == vec[(n + vec.len()/2 as usize) % vec.len()]
 }
 
 fn read_input() -> String {
