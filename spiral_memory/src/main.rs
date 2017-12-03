@@ -88,12 +88,10 @@ fn get_neighbours_sum(loc: &Point, mem: &HashMap<Point, u32>) -> u32 {
             sum += mem.get(&p).unwrap_or(&0);
         }
     }
-    println!("Sum for point ({}, {}) is {}", loc.x, loc.y, sum);
     sum
 }
 
 fn manhattan_distance(p1: Point, p2: Point) -> i32 {
-    println!("Point: {}, {}", p2.x, p2.y);
     (p1.x - p2.x).abs() + (p1.y - p2.y).abs()
 }
 
@@ -135,7 +133,6 @@ fn find_side(loc: u32) -> SquareSide {
 }
 
 fn half_point(h: u32, l: u32) -> i32 {
-    println!("Half point: {}", ((h+l) / 2) as i32);
     ((h+l) / 2) as i32
 }
 
