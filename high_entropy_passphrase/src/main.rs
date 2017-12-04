@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
+use std::collections::HashSet;
 
 const FILE_PATH: &str = "D:\\Faks\\git\\advent-of-code-17\\high_entropy_passphrase\\input.txt";
 
@@ -20,7 +21,6 @@ fn read_input() -> Vec<String> {
 }
 
 fn is_valid(pswd: &str) -> bool {
-    use std::collections::HashSet;
     let mut set = HashSet::new();
     
     for word in pswd.split_whitespace() {
@@ -30,5 +30,30 @@ fn is_valid(pswd: &str) -> bool {
             set.insert(word);
         }
     }
-    true
+    !is_anagram(&set)
+}
+
+fn is_anagram(set: &HashSet<&str>) -> bool {
+    for word in set {
+        let temp = make_vec(&word[..]);
+        for candidate in get_same_lenght_words(word, set){
+            println!("Same len word {} as {}", candidate, word);
+            let len = make_vec(&candidate[..]).iter().filter(|c| temp.contains(c)).collect::<Vec<&char>>().len();
+            if temp.len() == len {
+                return true
+            }
+        }
+    }
+    false
+}
+
+fn make_vec(word: &str) -> Vec<char> {
+    word.chars().collect()
+}
+
+fn get_same_lenght_words<'a>(s: &'a str, set: &HashSet<&'a str>) -> Vec<&'a str> {
+    let mut vec = Vec::new();
+
+    set.iter().filter(|a| a.len() == s.len() && **a != s).for_each(|a| vec.push(*a));
+    vec
 }
