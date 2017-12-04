@@ -1,9 +1,11 @@
 use std::fs::File;
+use std::fs;
 use std::io::BufReader;
 use std::io::prelude::*;
+use std::path::PathBuf;
 use std::collections::HashSet;
 
-const FILE_PATH: &str = "D:\\Faks\\git\\advent-of-code-17\\high_entropy_passphrase\\input.txt";
+const FILE_PATH: &str = "./input.txt";
 
 fn main() {
     let lines = read_input();
@@ -12,7 +14,7 @@ fn main() {
 }
 
 fn read_input() -> Vec<String> {
-    let f = File::open(FILE_PATH).expect("file not found");
+    let f = File::open(fs::canonicalize(FILE_PATH).unwrap()).expect("file not found");
     let mut result: Vec<String> = Vec::new();
     let reader = BufReader::new(f);
 
