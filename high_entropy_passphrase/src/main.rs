@@ -30,14 +30,13 @@ fn is_valid(pswd: &str) -> bool {
             set.insert(word);
         }
     }
-    !is_anagram(&set)
+    !is_anagram(&set) //remove this line to get part 1 solution
 }
 
 fn is_anagram(set: &HashSet<&str>) -> bool {
     for word in set {
         let temp = make_vec(&word[..]);
         for candidate in get_same_lenght_words(word, set){
-            println!("Same len word {} as {}", candidate, word);
             let len = make_vec(&candidate[..]).iter().filter(|c| temp.contains(c)).collect::<Vec<&char>>().len();
             if temp.len() == len {
                 return true
