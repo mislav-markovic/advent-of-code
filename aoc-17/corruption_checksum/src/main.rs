@@ -1,8 +1,9 @@
 use std::fs::File;
+use std::path::PathBuf;
 use std::io::BufReader;
 use std::io::prelude::*;
 
-const FILE_PATH: &str = "D:\\Faks\\git\\advent-of-code-17\\corruption_checksum\\input.txt";
+const FILE_PATH: &str = "./input.txt";
 
 struct Row {
     elements: Vec<i32>,
@@ -42,7 +43,7 @@ fn main() {
 }
 
 fn read_input() -> Vec<Row> {
-    let f = File::open(FILE_PATH).expect("file not found");
+    let f = File::open(PathBuf::from(FILE_PATH)).expect("file not found");
     let mut result: Vec<Row> = Vec::new();
     let reader = BufReader::new(f);
 
