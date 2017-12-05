@@ -1,9 +1,7 @@
 use std::fs::File;
-use std::fs;
 use std::io::BufReader;
 use std::path::PathBuf;
 use std::io::prelude::*;
-use std::path::PathBuf;
 use std::collections::HashSet;
 
 const FILE_PATH: &str = "./input.txt";
@@ -15,11 +13,7 @@ fn main() {
 }
 
 fn read_input() -> Vec<String> {
-<<<<<<< HEAD:high_entropy_passphrase/src/main.rs
-    let f = File::open(fs::canonicalize(FILE_PATH).unwrap()).expect("file not found");
-=======
     let f = File::open(PathBuf::from(FILE_PATH)).expect("file not found");
->>>>>>> aoc-17:aoc-17/high_entropy_passphrase/src/main.rs
     let mut result: Vec<String> = Vec::new();
     let reader = BufReader::new(f);
 
