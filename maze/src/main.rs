@@ -16,7 +16,7 @@ fn cycle_instructions(instr: &mut Vec<isize>) -> u32 {
 
     loop {
         let offset = instr[pos].clone();
-        instr[pos] += 1;
+        instr[pos] += if instr[pos] >= 3 { -1 } else { 1 }; //for part1 solution change if into 1
         counter += 1;
         match new_pos(pos, offset, instr.len()){
             Ok(p) => pos = p,
