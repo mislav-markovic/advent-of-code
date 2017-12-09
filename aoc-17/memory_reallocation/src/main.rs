@@ -61,17 +61,27 @@ fn main() {
     }
 
     let mut counter = 0;
+    let mut loop_counter = 1;
 
     loop {
         let conf = memory.make_config();
         if memory.confgis.contains(&conf) {
+            loop {
+                memory.reallocate();
+                let conf2 = memory.make_config();
+                if conf2 == conf {
+                    break;
+                }
+                loop_counter += 1;
+            }
             break;
         }
         memory.confgis.insert(conf);
         counter += 1;
         memory.reallocate();
     }
-    println!("{}", counter);
+    println!("Redistribution cycle: {}", counter);
+    println!("Loop size: {}", loop_counter)
 }
 
 fn read_input() -> Vec<u32> {
