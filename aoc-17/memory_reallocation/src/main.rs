@@ -1,16 +1,10 @@
 use std::collections::HashSet;
-use std::cmp;
 use std::fs::File;
 use std::path::PathBuf;
 use std::io::BufReader;
 use std::io::prelude::*;
 
 const FILE_PATH: &str = "./input.txt";
-
-struct MemBank {
-    pos: usize,
-    blocks: usize
-}
 
 struct Memory {
     banks: Vec<u32>,
@@ -57,14 +51,6 @@ impl Memory {
         s
     }
 }
-
-impl MemBank {
-    fn new(pos: usize, blocks: usize) -> MemBank {
-        MemBank {pos: pos, blocks: blocks}
-    } 
-}
-
-
 
 fn main() {
     let input = read_input();
