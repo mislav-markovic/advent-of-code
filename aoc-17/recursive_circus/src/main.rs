@@ -69,7 +69,8 @@ struct Node {
     name: String,
     weight: u32,
     children: Vec<String>,
-    parent: Option<String>
+    parent: Option<String>,
+    total_weight: u32
 }
 
 impl Node {
@@ -82,13 +83,23 @@ impl Node {
             Some(n) => n,
             _ => 0
         };
-        Node{name: name, weight: w, children: Vec::new(), parent: parent}
+        Node{name: name, weight: w, children: Vec::new(), parent: parent, total_weight: 0}
     }
 
     fn add_children(&mut self, ch: Vec<String>) {
         for c in ch.iter(){
             self.children.push(c.clone());
         }
+    }
+
+    fn total_weight(&self, tree: &Tree) -> u32 {
+        let mut sum = 0;
+        if self.children.len() > 0 {
+            for child in &self.children {
+                sum += tree.tree.get(child).unwrap().total_weight(&tree);
+            }
+        }
+        sum + self.weight
     }
 }
 
@@ -97,7 +108,28 @@ fn main() {
     let mut tree = Tree::new();
     tree.add_vec(vec);
     tree.build_tree();
-    println!("{}", tree.root.unwrap().name)
+
+    let mut map: HashMap<String, u32> = HashMap::new();
+    for (name, node) in &tree.tree {
+        map.insert(name.clone(), node.total_weight(&tree));
+    }
+    find_imbalance(&map, &tree);
+}
+
+fn find_imbalance(weights: &HashMap<String, u32>, tree: &Tree) {
+    for (name, node) in &tree.tree {
+        if node.children.len() > 1 {
+            let test = weights.get(&node.children[0]).unwrap();
+            for child in node.children.iter(){
+                if test != weights.get(child).unwrap() {
+                    println!("test: {}, value: {}", test, weights.get(child).unwrap());
+                    println!("test weight: {}, node weight: {}",
+                     tree.tree.get(&node.children[0]).unwrap().weight,
+                     tree.tree.get(child).unwrap().weight);
+                }
+            }
+        }
+    }
 }
 
 fn read_input() -> Vec<Node> {
