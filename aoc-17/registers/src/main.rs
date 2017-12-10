@@ -21,17 +21,18 @@ enum Operation {
 }
 
 struct Engine {
-    registers: HashMap<String, i32>
+    registers: HashMap<String, i32>,
+    largest: i32
 }
 
 impl Engine {
-    fn largest(self) -> (String, i32) {
-        let vec: Vec<(String, i32)> = self.registers.into_iter().collect();
+    fn largest(&self) -> (String, i32){
+        let vec: Vec<(String, i32)> = self.registers.clone().into_iter().collect();
         vec.iter().max_by(|a, b| a.1.cmp(&b.1)).unwrap().clone()
     }
 
     fn new() -> Engine {
-        Engine{registers: HashMap::new()}
+        Engine{registers: HashMap::new(), largest: std::i32::MIN}
     }
 
     fn run(&mut self, reg: String, op: Operation, cond: Condition) {
@@ -39,21 +40,26 @@ impl Engine {
             self.registers.insert(reg.clone(), 0);
         }
         if self.test_condition(cond) {
-            self.do_operation(reg, op);
+            let v = self.do_operation(reg, op);
+            if v > self.largest {
+                self.largest = v;
+            }
         }
     }
 
-    fn do_operation(&mut self, reg: String, op: Operation) {
+    fn do_operation(&mut self, reg: String, op: Operation) -> i32 {
         match op {
             Operation::Inc(v) => {
                 let mut t = self.registers.entry(reg).or_insert(0);
                 *t += v;
+                *t
             },
             Operation::Dec(v) => {
                 let mut t = self.registers.entry(reg).or_insert(0);
                 *t -= v;
+                *t
             },
-        };
+        }
     }
 
     fn test_condition(&mut self, cond: Condition) -> bool{
@@ -77,6 +83,7 @@ fn main() {
     }
     let largest = eng.largest();
     println!("Largest {} with value {}", largest.0, largest.1);
+    println!("Largest value ever {}", eng.largest);
 }
 
 fn read_input() -> Vec<(String, Operation, Condition)> {
