@@ -37,12 +37,19 @@ impl Hex {
 fn main() {
     let input = read_input();
     let mut start = Hex::new();
+    let mut furthest = 0;
+    let origin = Hex::new();
 
     for dir in input {
         start.move_hex(&dir[..]);
+        let dist = start.dist_to(&origin);
+        if dist > furthest {
+            furthest = dist;
+        }
     }
 
-    println!("{}", start.dist_to(&Hex::new()));
+    println!("Shortest path to reach him: {}", start.dist_to(&origin));
+    println!("Furthest he got: {}", furthest);
 
 }
 
