@@ -21,11 +21,11 @@ impl Hasher {
         Hasher {list: map, pos: 0, skip: 0}
     }
 
-    fn hash(&mut self, len: usize) {
+    fn hash(&mut self, len: &usize) {
         let (start, end) = (self.pos, self.pos+len % 256);
         let mut vec = Vec::<usize>::new();
 
-        for i in 0..len {
+        for i in 0..*len {
             let index: usize = (self.pos+i) % 256;
             vec.push(self.list.get(&index).unwrap().clone());
         }
@@ -44,34 +44,55 @@ impl Hasher {
         let second = self.list.get(&1).unwrap();
         first*second
     }
+
+    fn dense_hash(&self) -> Vec<u8> {
+        let mut vec = Vec::new();
+        let mut block = 0;
+
+        while block < 16 {
+            let mut val = *self.list.get(&(block*16)).unwrap() as u8;
+            for i in 1..16 {
+                val = val ^ (*self.list.get(&(block*16 + i)).unwrap() as u8);
+            }
+            vec.push(val);
+            block += 1;
+        }
+        vec
+    }
 }
 
 fn main() {
-    let input = read_input();
+    let mut input = read_input();
+    input.extend(&[17, 31, 73, 47, 23]);
     let mut hasher = Hasher::new();
 
-    for len in input {
-        hasher.hash(len);
+    for _ in 0..64 {
+        for len in &input {
+            let l = *len as usize;
+            hasher.hash(&l);
+        }
     }
-    println!("{}", hasher.mul_two());
+
+    for num in hasher.dense_hash() {
+        print!("{:02x}", num);
+    }
+    println!("");
 
 }
 
-fn read_input() -> Vec<usize> {
+fn read_input() -> Vec<u8> {
     let f = File::open(PathBuf::from(FILE_PATH)).expect("file not found");
-    let mut result: Vec<usize> = Vec::new();
+    let mut result = Vec::new();
     let reader = BufReader::new(f);
 
     reader.lines().for_each(|l| result.extend(parse(l.unwrap().trim()).as_slice()));
     result
 }
 
-fn parse<'a>(line: &'a str) -> Vec<usize> {
-    let temp = line.split(",");
+fn parse<'a>(line: &'a str) -> Vec<u8> {
     let mut vec = Vec::new();
 
-    for num in temp {
-        vec.push(num.trim().parse().unwrap());
-    }
+    vec.extend(line.as_bytes());
+
     vec
 }
