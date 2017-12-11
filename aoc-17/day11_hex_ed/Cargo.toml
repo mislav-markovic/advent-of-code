@@ -1,0 +1,6 @@
+[package]
+name = "day11_hex_ed"
+version = "0.1.0"
+authors = ["Mislav <mislav.markovic@fer.hr>"]
+
+[dependencies]

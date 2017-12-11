@@ -1,0 +1,6 @@
+[package]
+name = "day06_memory_reallocation"
+version = "0.1.0"
+authors = ["mislav-markovic <mislav.markovic@fer.hr>"]
+
+[dependencies]
