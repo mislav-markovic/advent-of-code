@@ -52,12 +52,30 @@ fn main() {
         }
     } 
 
+    let mut all =Vec::<u32>::new();
+
+    for (id, _) in map.iter() {
+        all.push(*id);
+    }
+
     let result = bfs(0, &map);
-    println!("{}", result); 
+    println!("{}", result.len());
+
+    let mut group_counter = 1;
+
+    all.retain(|a| !result.contains(a));
+
+    while all.len() > 0 {
+        let temp = bfs(all[0], &map);
+        all.retain(|a| !temp.contains(a));
+        group_counter += 1;
+    }
+
+    println!("Groups: {}", group_counter);
 
 }
 
-fn bfs(start: u32, map: &HashMap<u32, Node>) -> u32 {
+fn bfs(start: u32, map: &HashMap<u32, Node>) -> Vec<u32> {
     let mut open_set = VecDeque::new();
     let mut closed_set = HashSet::new();
     open_set.push_front(start);
@@ -77,7 +95,7 @@ fn bfs(start: u32, map: &HashMap<u32, Node>) -> u32 {
         closed_set.insert(parent);
     }
 
-    closed_set.len() as u32
+    closed_set.iter().map(|a| *a).collect()
 }
 
 fn read_input() -> Vec<(u32, Vec<u32>)> {
