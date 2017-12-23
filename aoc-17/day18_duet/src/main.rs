@@ -3,9 +3,15 @@ use std::path::PathBuf;
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::collections::HashMap;
+use std::sync::mpsc::channel;
+use std::thread;
+use std::sync::mpsc::Sender;
+use std::sync::mpsc::Receiver;
+use std::time::Duration;
 
 const FILE_PATH: &str = "./input.txt";
 
+#[derive(Clone, Debug)]
 enum Instr {
     Snd(String),
     Set(String, String),
@@ -19,33 +25,116 @@ enum Instr {
 enum After {
     Jump(i64),
     Signal(i64),
-    Rcv(),
+    Rcv(String),
+}
+
+struct Program {
+    instructions: Vec<Instr>,
+    regs: HashMap<String, i64>,
+    id: i64,
+    send: Sender<i64>,
+    rec: Receiver<i64>,    
+}
+
+impl Program {
+    fn new(id: i64, vec: &Vec<Instr>, send: Sender<i64>, rec: Receiver<i64>) -> Program {
+        let mut regs = HashMap::<String, i64>::new();
+        regs.insert("p".to_string(), id);
+        Program {regs: regs, id: id, instructions: vec.clone(), send: send, rec: rec}
+    }
+
+    fn run_all(&mut self) {
+        let mut i = 0;
+        let mut send_cnt = 0;
+        println!("Running program: {}", self.id);
+        while i < self.instructions.len() {
+            let mut skip = 1;
+            if let Some(opt) = Program::do_instr(self.instructions.get(i).unwrap(), &mut self.regs) {
+                match opt {
+                    After::Jump(s) => skip = s,
+                    After::Signal(s) => {
+                        if let Err(err) = self.send.send(s){
+                            println!("{}", err);
+                        }
+                        send_cnt += 1;
+                    },
+                    After::Rcv(reg) => {
+                        let result = self.rec.recv_timeout(Duration::new(10, 0));
+                        if let Err(er) = result {
+                            println!("Program {} sent {} times", self.id, send_cnt);
+                            break;
+                        } else {
+                            let r = self.regs.entry(reg).or_insert(0);
+                            *r = result.unwrap();
+                        }
+                    }
+                }
+            }
+            let new = i as i64 + skip;
+            if new < 0 {
+                println!("Program {} sent {}", self.id, send_cnt);
+                break;
+            }
+            i = new as usize;
+        }
+        println!("Program {} sent {}", self.id, send_cnt);
+    }
+
+    fn do_instr(instr: &Instr, map: &mut HashMap<String, i64>) -> Option<After> {
+        let mut result = None::<After>;
+        match *instr {
+            Instr::Snd(ref val) => {
+                result = Some(After::Signal(num_or_reg(&val, map)));
+            },
+            Instr::Add(ref r_id, ref val) => {
+                let val = num_or_reg(&val, map);
+                let r1 = map.entry(r_id.clone()).or_insert(0);
+                *r1 += val;
+            },
+            Instr::Set(ref r_id, ref val) => {
+                let val = num_or_reg(&val, map);
+                let r1 = map.entry(r_id.clone()).or_insert(0);
+                *r1 = val;
+            },
+            Instr::Mul(ref r_id, ref val) => {
+                let val = num_or_reg(&val, map);
+                let r1 = map.entry(r_id.clone()).or_insert(0);
+                *r1 *= val;
+            },
+            Instr::Mod(ref r_id, ref val) => {
+                let val = num_or_reg(&val, map);
+                let r1 = map.entry(r_id.clone()).or_insert(0);
+                *r1 %= val;
+            },
+            Instr::Rcv(ref val) => {
+                result = Some(After::Rcv(val.clone()));
+            },
+            Instr::Jgz(ref r1, ref r2) => {
+                let r1 = num_or_reg(&r1, map);
+                let r2 = num_or_reg(&r2, map);
+                if r1 > 0 {
+                    result = Some(After::Jump(r2));
+                }
+            },
+        };
+        result
+    }
 }
 
 fn main() {
     let input = read_input();
-    let mut regs = HashMap::<String, i64>::new();
-    let mut last_sound = 0;
-    let mut i = 0;
+    let (s1, r1) = channel::<i64>();
+    let (s2, r2) = channel::<i64>();
 
-    while i < input.len() {
-        let mut skip = 1;
-        if let Some(opt) = do_instr(input.get(i).unwrap(), &mut regs) {
-            match opt {
-                After::Jump(s) => skip = s,
-                After::Signal(s) => last_sound = s,
-                After::Rcv() => {
-                    println!("Recovered signal: {}", last_sound);
-                    break;
-                }
-            }
-        }
-        let new = i as i64 + skip;
-        if new < 0 {
-            break;
-        }
-        i = new as usize;
-    }
+    let mut p1 = Program::new(0, &input, s1, r2);
+    let mut p2 = Program::new(1, &input, s2, r1);
+
+    let handle1 = thread::spawn(move || {
+        p1.run_all();
+    });
+    p2.run_all();
+
+    handle1.join();
         
 }
 
@@ -77,7 +166,7 @@ fn do_instr(instr: &Instr, map: &mut HashMap<String, i64>) -> Option<After> {
         },
         Instr::Rcv(ref val) => {
             if num_or_reg(&val, map) != 0 {
-                result = Some(After::Rcv());
+                //result = Some(After::Rcv());
             }
         },
         Instr::Jgz(ref r1, ref r2) => {
