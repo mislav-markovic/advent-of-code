@@ -1,0 +1,6 @@
+[package]
+name = "day15_dueling_generators"
+version = "0.1.0"
+authors = ["Mislav <mislav.markovic@fer.hr>"]
+
+[dependencies]
