@@ -18,11 +18,10 @@ mod day1 {
             self.calibrate(change.parse().unwrap());
         }
     }
-}
 
-#[cfg(test)]
+    #[cfg(test)]
 mod tests{
-use super::day1::Freq;
+use super::Freq;
 
     #[test]
     fn init(){
@@ -84,7 +83,23 @@ use super::day1::Freq;
 
         f.calibrate_str("+10");
         f.calibrate_str("-2");        
-        f.calibrate_str("-10");
+        f.calibrate_str("-8");
+        assert_eq!(f.get_current(), 10);
+    }
+
+    #[test]
+    fn complex_case_2(){
+        let mut f = Freq::new();
+        
+        f.calibrate(5);
+        f.calibrate_str("+10");
+        f.calibrate(-7);
+        f.calibrate_str("-2");
+        f.calibrate(12);        
+        f.calibrate_str("-8");
+        
         assert_eq!(f.get_current(), 10);
     }
 }
+}
+
