@@ -12,7 +12,7 @@ pub fn read_all(file_name: &str) -> String {
 }
 
 pub fn read_all_lines(file_name: &str) -> Vec<String> {
-    let mut contents = read_all(file_name);
+    let contents = read_all(file_name);
     let mut result = Vec::new();
 
     for line in contents.lines() {
