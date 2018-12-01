@@ -1,4 +1,3 @@
-use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -22,9 +21,7 @@ pub fn read_all_lines(file_name: &str) -> Vec<String> {
     result
 }
 
-pub fn open_file(file_name: &str) -> File {
+fn open_file(file_name: &str) -> File {
     let relative_path = String::from("input/".to_owned() + file_name);
-    println!("Reading from: {}", relative_path);
-    let mut f = File::open(relative_path).expect("file not found");
-    f
+    File::open(relative_path).expect("file not found")
 }

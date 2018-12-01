@@ -1,3 +1,4 @@
+use crate::input_reader;
 
 pub struct Freq {
     current: i32,
@@ -19,6 +20,48 @@ impl Freq {
     pub fn calibrate_str(&mut self, change: &str) {
         self.calibrate(change.parse().unwrap());
     }
+}
+
+pub fn part1(input_location: &str) -> i32 {
+    let mut freq =Freq::new();
+
+    for l in input_reader::read_all_lines(input_location) {
+        freq.calibrate_str(&l);
+    }
+    freq.get_current()
+}
+
+pub fn part2(input_location: &str) -> i32 {
+    use std::collections::HashSet;
+
+    let mut freq = Freq::new();
+    let v = input_reader::read_all_lines(input_location);
+    let mut duplicate_detection = HashSet::new();
+    duplicate_detection.insert(freq.get_current());
+
+    'outer: loop {
+        for l in v.iter() {
+            freq.calibrate_str(&l);
+            if duplicate_detection.contains(&freq.get_current()) {
+                break 'outer;
+            } else {
+                duplicate_detection.insert(freq.get_current());
+            }
+        }
+    }
+
+    freq.get_current()
+}
+
+pub fn day1() {
+    let input = String::from("day1");
+
+    println!("***Day One***");
+    println!("\tReading from {}", input);
+    println!("\t**Part One**");    
+    println!("\t\tFrequency: {}", part1(&input));
+    println!("\t**Part Two**");
+    println!("\t\tFirst duplicate: {}", part2(&input));
 }
 
 #[cfg(test)]
