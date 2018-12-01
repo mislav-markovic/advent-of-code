@@ -1,6 +1,7 @@
 #![feature(try_trait)]
 
 mod day1;
+mod day2;
 mod input_reader;
 
 use lazy_static::lazy_static;
