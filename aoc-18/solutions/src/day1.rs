@@ -13,35 +13,51 @@ impl Freq {
         self.current
     }
 
-    pub fn calibrate(&mut self, change: i32) {
+    pub fn calibrate(&mut self, change: i32) -> i32 {
         self.current += change;
+        self.current
     }
 
-    pub fn calibrate_str(&mut self, change: &str) {
-        self.calibrate(change.parse().unwrap());
+    pub fn calibrate_str(&mut self, change: &str) -> i32 {
+        self.calibrate(change.parse().unwrap())
+    }
+
+    pub fn calibrate_all(&mut self, changes: &[i32]) -> i32 {
+        self.current += changes.iter().sum::<i32>();
+        self.current
+    }
+
+    pub fn calibrate_str_all(&mut self, changes: &[&str]) -> i32 {
+        let transform = changes
+            .iter()
+            .map(|elem| elem.parse().unwrap())
+            .collect::<Vec<i32>>();
+        self.calibrate_all(&transform[..])
     }
 }
 
 pub fn part1(input_location: &str) -> i32 {
-    let mut freq =Freq::new();
-
-    for l in input_reader::read_all_lines(input_location) {
-        freq.calibrate_str(&l);
-    }
-    freq.get_current()
+    let mut freq = Freq::new();
+    let data = input_reader::read_all_lines(input_location);
+    let input = data.iter().map(|s| &s[..]).collect::<Vec<&str>>();
+    freq.calibrate_str_all(&input[..])
 }
 
 pub fn part2(input_location: &str) -> i32 {
     use std::collections::HashSet;
 
     let mut freq = Freq::new();
-    let v = input_reader::read_all_lines(input_location);
+    let data = input_reader::read_all_lines(input_location);
+    let v = data
+        .iter()
+        .map(|s| s.parse::<i32>().unwrap())
+        .collect::<Vec<i32>>();
     let mut duplicate_detection = HashSet::new();
     duplicate_detection.insert(freq.get_current());
 
     'outer: loop {
         for l in v.iter() {
-            freq.calibrate_str(&l);
+            freq.calibrate(*l);
             if duplicate_detection.contains(&freq.get_current()) {
                 break 'outer;
             } else {
@@ -58,7 +74,7 @@ pub fn day1() {
 
     println!("***Day One***");
     println!("\tReading from {}", input);
-    println!("\t**Part One**");    
+    println!("\t**Part One**");
     println!("\t\tFrequency: {}", part1(&input));
     println!("\t**Part Two**");
     println!("\t\tFirst duplicate: {}", part2(&input));
@@ -144,5 +160,30 @@ mod tests {
         f.calibrate_str("-8");
 
         assert_eq!(f.get_current(), 10);
+    }
+
+    #[test]
+    fn calibrate_all() {
+        let mut f = Freq::new();
+        let input: [i32; 6] = [1, 2, 3, -1, -3, -3];
+
+        assert_eq!(f.calibrate_all(&input[..]), -1);
+    }
+
+    #[test]
+    fn calibrate_str_all() {
+        let mut f = Freq::new();
+        let input = ["+1", "+1", "+1", "1", "-5", "+2", "-3"];
+        assert_eq!(f.calibrate_str_all(&input[..]), -2);
+    }
+
+    #[test]
+    fn complex_case_3() {
+        let mut f = Freq::new();
+        let input1: [i32; 6] = [1, 2, 3, -1, -3, -3];
+        let input2 = ["+1", "+1", "+1", "1", "-5", "+2", "-3"];
+        f.calibrate_all(&input1[..]);
+        f.calibrate_str_all(&input2);
+        assert_eq!(f.get_current(), -3);
     }
 }
