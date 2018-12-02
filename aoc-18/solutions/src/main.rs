@@ -2,6 +2,7 @@
 
 mod day1;
 mod day2;
+mod day3;
 mod input_reader;
 
 use lazy_static::lazy_static;
@@ -31,6 +32,7 @@ lazy_static! {
         let mut m = HashMap::new();
         m.insert("day1", day1::day1 as fn());
         m.insert("day2", day2::day2 as fn());
+        m.insert("day3", day3::day3 as fn());
         m
     };
 }
