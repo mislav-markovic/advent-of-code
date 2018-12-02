@@ -30,6 +30,7 @@ lazy_static! {
     static ref HASHMAP: HashMap<&'static str, fn()> = {
         let mut m = HashMap::new();
         m.insert("day1", day1::day1 as fn());
+        m.insert("day2", day2::day2 as fn());
         m
     };
 }
