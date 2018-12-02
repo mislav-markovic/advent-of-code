@@ -44,7 +44,6 @@ impl Checksum {
     }
 
     pub fn get_common_chars(&self) -> String {
-        let mut s = String::new();
         let (l, r) = self.closest_pair.clone().unwrap();
 
         l.chars()
