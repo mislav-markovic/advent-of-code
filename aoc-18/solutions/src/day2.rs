@@ -103,4 +103,34 @@ pub fn day2() {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use crate::day2::*;
+
+    #[test]
+    fn checksum_test() {
+        let mut c = Checksum::new();
+        c.add("abcdef");
+        c.add("bababc");
+        c.add("abbcde");
+        c.add("abcccd");
+        c.add("aabcdd");
+        c.add("abcdee");
+        c.add("ababab");
+
+        assert_eq!(c.get_checksum(), 12);
+    }
+
+    #[test]
+    fn common_chars_test() {
+        let mut c = Checksum::new();
+        c.add("abcde");
+        c.add("fghij");
+        c.add("klmno");
+        c.add("pqrst");
+        c.add("fguij");
+        c.add("axcye");
+        c.add("wvxyz");
+
+        assert_eq!(c.get_common_chars(), "fgij");
+    }
+}
