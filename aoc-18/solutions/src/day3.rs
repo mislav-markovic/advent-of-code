@@ -111,11 +111,21 @@ impl Fabric {
     }
 
     pub fn unoverlaping_claim(&self) -> u32 {
-        self.claims.iter().filter(|r| !self.is_overlaping(&r)).take(1).next().unwrap().id
+        self.claims
+            .iter()
+            .filter(|r| !self.is_overlaping(&r))
+            .take(1)
+            .next()
+            .unwrap()
+            .id
     }
 
     fn is_overlaping(&self, rect: &Rectangle) -> bool {
-        rect.iter().map(|x| *self.area.get(&x).unwrap()).filter(|x| *x > 1).count() > 0
+        rect.iter()
+            .map(|x| *self.area.get(&x).unwrap())
+            .filter(|x| *x > 1)
+            .count()
+            > 0
     }
 }
 
@@ -129,7 +139,6 @@ fn do_the_job(input_location: &str) -> (u32, u32) {
 
     (fabric.overlap(), fabric.unoverlaping_claim())
 }
-
 
 pub fn day3() {
     let input = String::from("day3");
@@ -209,7 +218,7 @@ mod tests {
         assert_eq!(f.overlap(), 4);
     }
 
-        #[test]
+    #[test]
     fn unoverlap_test_1() {
         let r1 = Rectangle::from_str("#1 @ 1,3: 4x4");
         let r2 = Rectangle::from_str("#2 @ 3,1: 4x4");
