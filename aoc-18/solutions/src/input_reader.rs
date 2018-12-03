@@ -12,13 +12,7 @@ pub fn read_all(file_name: &str) -> String {
 }
 
 pub fn read_all_lines(file_name: &str) -> Vec<String> {
-    let contents = read_all(file_name);
-    let mut result = Vec::new();
-
-    for line in contents.lines() {
-        result.push(line.to_owned());
-    }
-    result
+    read_all(file_name).lines().map(|s| s.to_owned()).collect()
 }
 
 fn open_file(file_name: &str) -> File {
