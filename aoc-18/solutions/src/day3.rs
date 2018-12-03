@@ -4,7 +4,7 @@ use std::collections::HashMap;
 type area_t = HashMap<point_t, u32>;
 type point_t = (u32, u32);
 
-#[derive(Clone)]
+
 pub struct Rectangle {
     id: u32,
     width: u32,
