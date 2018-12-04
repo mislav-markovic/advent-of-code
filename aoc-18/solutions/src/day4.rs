@@ -6,7 +6,7 @@ type guard_id_t = u32;
 type minutes_t = HashSet<u32>;
 type shifts_t = Vec<Shift>;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 struct Date {
     year: u32,
     month: u32,
@@ -14,6 +14,13 @@ struct Date {
 }
 
 impl Date {
+    fn as_empty() -> Date {
+        Date {
+            year: 0,
+            month: 0,
+            day: 0,
+        }
+    }
     fn new(year: u32, month: u32, day: u32) -> Date {
         Date { year, month, day }
     }
@@ -34,6 +41,9 @@ struct Guard {
 }
 
 impl Guard {
+    fn as_empty() -> Guard{
+        Guard {id: 0, shifts: shifts_t::new()}
+    }
     fn new(id: guard_id_t) -> Guard {
         Guard {
             id,
@@ -65,6 +75,12 @@ struct Shift {
 }
 
 impl Shift {
+    fn as_empty() -> Shift {
+        Shift {
+            date: Date::as_empty(),
+            minutes_asleep: minutes_t::new(),
+        }
+    }
     fn new(date: Date) -> Shift {
         Shift {
             date,
@@ -82,16 +98,17 @@ impl Shift {
     }
 }
 
-fn do_the_job(input_location: &str) {
+fn do_the_job(input_location: &str) -> u32 {
     use std::mem;
     let mut data = input_reader::read_all_lines(input_location);
     data.sort();
     let mut guards: HashMap<u32, Guard> = HashMap::new();
 
-    let mut curr_guard: Option<&Guard> = None;
-    let mut last_date: Option<Date> = None;
+    let mut curr_guard: &mut Guard = &mut Guard::as_empty();
+    let mut last_date = Date::as_empty();
     let mut fell_asleep = 0u32;
-    let mut curr_shift: Option<Shift> = None;
+    let mut curr_shift = Shift::as_empty();
+    let mut is_first = true;
 
     for l in data.iter() {
         let split = l.split(' ').collect::<Vec<_>>();
@@ -105,42 +122,35 @@ fn do_the_job(input_location: &str) {
             .parse::<u32>()
             .unwrap(); //take just minutes
 
-        match &last_date {
-            None => last_date = Some(date),
-            Some(ref d) => {
-                if date != *d {
-                    curr_guard.as_mut().and_then(|g| {
-                        g.add_shift(mem::replace(&mut curr_shift, None).unwrap());
-                        None<Shift>
-                    });
+        if is_first {
+            is_first = false;
+            last_date = date.clone();
+            curr_shift = Shift::new(date);
+            let id = split[3][1..].parse::<u32>().unwrap();
+            curr_guard = guards.entry(id).or_insert(Guard::new(id));
+        } else {
+            if last_date != date {
+                curr_guard.add_shift(curr_shift);
+                last_date = date.clone();
+                curr_shift = Shift::new(date);
+            }
+            match split[2] {
+                "Guard" => {
+                    let id = split[3][1..].parse::<u32>().unwrap();
+                    curr_guard = guards.entry(id).or_insert(Guard::new(id));
                 }
+                "falls" => {
+                    fell_asleep = time;
+                }
+                "wakes" => {
+                    curr_shift.sleep(fell_asleep, time);
+                }
+                _ => {}
             }
-        };
-
-        match curr_shift {
-            None => {
-                curr_shift = Some(Shift::new(date));
-            }
-            Some(ref s) => {}
-        }
-
-        match split[2] {
-            "Guard" => {
-                let id = split[3][0..].parse().unwrap();
-                curr_guard = Some(guards.entry(id).or_insert(Guard::new(id)));
-            }
-            "falls" => {
-                fell_asleep = time;
-            }
-            "wakes" => {
-                curr_shift.as_mut().and_then(|s| {
-                    s.sleep(fell_asleep, time);
-                    Some(s)
-                });
-            }
-            _ => {}
         }
     }
+    guards.iter().map(|(k,v)| (k, v.total_minutes_slept())).max_by_key(|(k,v)| v);
+    0
 }
 
 pub fn day4() {
