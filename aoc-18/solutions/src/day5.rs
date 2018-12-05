@@ -14,11 +14,17 @@ pub fn part1(input: &str) -> usize {
         let mut reaction = String::new();
         let first: char = polymer.chars().take(1).next().unwrap();
         reacted = false;
-
+        reaction.push(first);
         polymer.chars().skip(1).scan(first, |state, elem| {
             if are_polar_opposite(*state, elem) {
+                //println!("Oppsites: {}x{}", *state, elem);
+                //println!("{}", reaction);
                 reaction.pop();
-                *state = reaction.pop().unwrap();
+                match reaction.pop(){
+                    None => *state = 0 as char,
+                    Some(s) => *state = s,
+                };
+
                 reaction.push(*state);
                 reacted = true;
                 Some(*state)
@@ -27,7 +33,7 @@ pub fn part1(input: &str) -> usize {
                 *state = elem;
                 Some(*state)
             }
-        });
+        }).for_each(|_x| {;});
         polymer = reaction;
     }
     polymer.len()
