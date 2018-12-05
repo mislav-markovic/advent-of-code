@@ -1,5 +1,6 @@
 use crate::input_reader;
 use std::collections::HashSet;
+use rayon::prelude::*;
 
 fn are_polar_opposite(lhs: char, rhs: char) -> bool {
     let eq_lhs = lhs.to_ascii_lowercase();
@@ -49,7 +50,16 @@ fn part1(input: &str) -> usize {
 fn part2(input: &str) -> usize {
     let data = input_reader::read_all(input);
     let symbols = get_symbols(&data);
-    symbols.iter().map(|sym| do_the_job(data.replace(&sym.to_string(), "").replace(sym.to_ascii_uppercase(), ""))).min().unwrap()
+    symbols
+        .par_iter()
+        .map(|sym| {
+            do_the_job(
+                data.replace(&sym.to_string(), "")
+                    .replace(sym.to_ascii_uppercase(), ""),
+            )
+        })
+        .min()
+        .unwrap()
 }
 
 fn get_symbols(input: &str) -> HashSet<char> {
