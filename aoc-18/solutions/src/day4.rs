@@ -149,7 +149,7 @@ fn do_the_job(input_location: &str) -> u32 {
             }
         }
     }
-    guards.iter().map(|(k,v)| (k, v.total_minutes_slept())).max_by_key(|(k,v)| v);
+    //guards.iter().map(|(k,v)| (k, v.total_minutes_slept())).max_by_key(|(k,v)| v);
     0
 }
 
