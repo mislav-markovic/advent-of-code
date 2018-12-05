@@ -1,4 +1,5 @@
 use crate::input_reader;
+use std::collections::HashSet;
 
 fn are_polar_opposite(lhs: char, rhs: char) -> bool {
     let eq_lhs = lhs.to_ascii_lowercase();
@@ -6,38 +7,53 @@ fn are_polar_opposite(lhs: char, rhs: char) -> bool {
     lhs != rhs && eq_lhs == eq_rhs
 }
 
-pub fn part1(input: &str) -> usize {
-    let mut polymer = input_reader::read_all(input);
+fn do_the_job(input: String) -> usize {
+    let mut polymer = input;
     let mut reacted = true;
-    println!("Starting units: {}", polymer.chars().count());
 
     while reacted {
         let mut reaction = String::new();
         let first: char = polymer.chars().take(1).next().unwrap();
         reacted = false;
         reaction.push(first);
-        polymer.chars().skip(1).scan(first, |state, elem| {
-            if are_polar_opposite(*state, elem) {
-                //println!("Oppsites: {}x{}", *state, elem);
-                //println!("{}", reaction);
-                reaction.pop();
-                match reaction.pop(){
-                    None => *state = ' ',
-                    Some(s) => *state = s,
-                };
+        polymer
+            .chars()
+            .skip(1)
+            .scan(first, |state, elem| {
+                if are_polar_opposite(*state, elem) {
+                    reaction.pop();
+                    match reaction.pop() {
+                        None => *state = ' ',
+                        Some(s) => *state = s,
+                    };
 
-                reaction.push(*state);
-                reacted = true;
-                Some(*state)
-            } else {
-                reaction.push(elem);
-                *state = elem;
-                Some(*state)
-            }
-        }).for_each(|_x| {;});
+                    reaction.push(*state);
+                    reacted = true;
+                    Some(*state)
+                } else {
+                    reaction.push(elem);
+                    *state = elem;
+                    Some(*state)
+                }
+            })
+            .for_each(|_x| {});
         polymer = reaction;
     }
     polymer.replace(" ", "").chars().count()
+}
+
+fn part1(input: &str) -> usize {
+    do_the_job(input_reader::read_all(input))
+}
+
+fn part2(input: &str) -> usize {
+    let data = input_reader::read_all(input);
+    let symbols = get_symbols(&data);
+    symbols.iter().map(|sym| do_the_job(data.replace(&sym.to_string(), "").replace(sym.to_ascii_uppercase(), ""))).min().unwrap()
+}
+
+fn get_symbols(input: &str) -> HashSet<char> {
+    input.chars().map(|c| c.to_ascii_lowercase()).collect()
 }
 
 pub fn day5() {
@@ -47,8 +63,8 @@ pub fn day5() {
     println!("\tReading from {}", input);
     println!("\t**Part One**");
     println!("\t\tRemaining units: {}", part1(&input));
-    //println!("\t**Part Two**");
-    //println!("\t\tClaim ID: {}", not_overlaping);
+    println!("\t**Part Two**");
+    println!("\t\tShortest reduction: {}", part2(&input));
 }
 
 #[cfg(test)]
