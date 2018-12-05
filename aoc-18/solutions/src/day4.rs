@@ -41,8 +41,11 @@ struct Guard {
 }
 
 impl Guard {
-    fn as_empty() -> Guard{
-        Guard {id: 0, shifts: shifts_t::new()}
+    fn as_empty() -> Guard {
+        Guard {
+            id: 0,
+            shifts: shifts_t::new(),
+        }
     }
     fn new(id: guard_id_t) -> Guard {
         Guard {
@@ -99,13 +102,11 @@ impl Shift {
 }
 
 fn do_the_job(input_location: &str) -> u32 {
-    use std::mem;
     let mut data = input_reader::read_all_lines(input_location);
     data.sort();
     let mut guards: HashMap<u32, Guard> = HashMap::new();
 
     let mut curr_guard: &mut Guard = &mut Guard::as_empty();
-    let mut last_date = Date::as_empty();
     let mut fell_asleep = 0u32;
     let mut curr_shift = Shift::as_empty();
     let mut is_first = true;
@@ -124,18 +125,15 @@ fn do_the_job(input_location: &str) -> u32 {
 
         if is_first {
             is_first = false;
-            last_date = date.clone();
             curr_shift = Shift::new(date);
             let id = split[3][1..].parse::<u32>().unwrap();
             curr_guard = guards.entry(id).or_insert(Guard::new(id));
         } else {
-            if last_date != date {
-                curr_guard.add_shift(curr_shift);
-                last_date = date.clone();
-                curr_shift = Shift::new(date);
-            }
             match split[2] {
                 "Guard" => {
+                    curr_guard.add_shift(curr_shift);
+                    curr_shift = Shift::new(date);
+
                     let id = split[3][1..].parse::<u32>().unwrap();
                     curr_guard = guards.entry(id).or_insert(Guard::new(id));
                 }
@@ -149,8 +147,23 @@ fn do_the_job(input_location: &str) -> u32 {
             }
         }
     }
-    //guards.iter().map(|(k,v)| (k, v.total_minutes_slept())).max_by_key(|(k,v)| v);
-    0
+    guards
+        .values()
+        .for_each(|v| println!("Id: {}, minutes: {}", v.id, v.total_minutes_slept()));
+    let g_id = guards
+        .iter()
+        .map(|(k, v)| (k, v.total_minutes_slept()))
+        .max_by_key(|(_k, v)| *v)
+        .unwrap()
+        .0;
+    let guard = guards.get(g_id).unwrap();
+    println!(
+        "{} x {}, minutes spelt total: {}",
+        guard.id,
+        guard.most_slept_minute(),
+        guard.total_minutes_slept()
+    );
+    guard.id * guard.most_slept_minute()
 }
 
 pub fn day4() {
@@ -159,7 +172,7 @@ pub fn day4() {
     println!("***Day Four***");
     println!("\tReading from {}", input);
     println!("\t**Part One**");
-    //println!("\t\tOverlaping inches: {}", overlap);
+    println!("\t\tGuard x Minutes: {}", do_the_job(&input));
     //println!("\t**Part Two**");
     //println!("\t\tClaim ID: {}", not_overlaping);
 }
