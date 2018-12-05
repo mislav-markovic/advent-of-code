@@ -62,13 +62,18 @@ impl Guard {
         self.shifts.iter().map(|s| s.minutes_slept()).sum()
     }
 
-    fn most_slept_minute(&self) -> u32 {
+    fn most_slept_minute(&self) -> (u32, u32) {
+        // (minute, number of times spent asleep)
         let mut map: HashMap<u32, u32> = HashMap::new(); // (minute, times spent asleep)
         self.shifts
             .iter()
             .flat_map(|s| s.minutes_asleep.iter())
             .for_each(|m| *map.entry(*m).or_insert(0) += 1);
-        *map.iter().max_by_key(|(_k, v)| *v).unwrap().0
+
+        match map.into_iter().max_by_key(|(_k, v)| *v) {
+            None => (self.id, 0),
+            Some(v) => v
+        }
     }
 }
 
@@ -101,7 +106,7 @@ impl Shift {
     }
 }
 
-fn do_the_job(input_location: &str) -> u32 {
+fn do_the_job(input_location: &str) -> HashMap<u32, Guard> {
     let mut data = input_reader::read_all_lines(input_location);
     data.sort();
     let mut guards: HashMap<u32, Guard> = HashMap::new();
@@ -147,34 +152,46 @@ fn do_the_job(input_location: &str) -> u32 {
             }
         }
     }
+    curr_guard.add_shift(curr_shift);
     guards
-        .values()
-        .for_each(|v| println!("Id: {}, minutes: {}", v.id, v.total_minutes_slept()));
+}
+
+fn part1(guards: &HashMap<u32, Guard>) -> u32 {
     let g_id = guards
         .iter()
         .map(|(k, v)| (k, v.total_minutes_slept()))
         .max_by_key(|(_k, v)| *v)
         .unwrap()
         .0;
+
     let guard = guards.get(g_id).unwrap();
-    println!(
-        "{} x {}, minutes spelt total: {}",
-        guard.id,
-        guard.most_slept_minute(),
-        guard.total_minutes_slept()
-    );
-    guard.id * guard.most_slept_minute()
+
+    guard.id * guard.most_slept_minute().0
+}
+
+fn part2(guards: &HashMap<u32, Guard>) -> u32 {
+    let g_id = guards
+        .iter()
+        .map(|(k, v)| (k, v.most_slept_minute().1))
+        .max_by_key(|(_k, v)| *v)
+        .unwrap()
+        .0;
+        
+    let guard = guards.get(g_id).unwrap();
+
+    guard.id * guard.most_slept_minute().0
 }
 
 pub fn day4() {
     let input = String::from("day4");
+    let guards = do_the_job(&input);
 
     println!("***Day Four***");
     println!("\tReading from {}", input);
     println!("\t**Part One**");
-    println!("\t\tGuard x Minutes: {}", do_the_job(&input));
-    //println!("\t**Part Two**");
-    //println!("\t\tClaim ID: {}", not_overlaping);
+    println!("\t\tGuard x Minutes: {}", part1(&guards));
+    println!("\t**Part Two**");
+    println!("\t\tGuard x Minutes: {}", part2(&guards));
 }
 
 #[cfg(test)]
