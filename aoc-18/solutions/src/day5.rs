@@ -9,6 +9,7 @@ fn are_polar_opposite(lhs: char, rhs: char) -> bool {
 pub fn part1(input: &str) -> usize {
     let mut polymer = input_reader::read_all(input);
     let mut reacted = true;
+    println!("Starting units: {}", polymer.chars().count());
 
     while reacted {
         let mut reaction = String::new();
@@ -21,7 +22,7 @@ pub fn part1(input: &str) -> usize {
                 //println!("{}", reaction);
                 reaction.pop();
                 match reaction.pop(){
-                    None => *state = 0 as char,
+                    None => *state = ' ',
                     Some(s) => *state = s,
                 };
 
@@ -36,7 +37,9 @@ pub fn part1(input: &str) -> usize {
         }).for_each(|_x| {;});
         polymer = reaction;
     }
-    polymer.len()
+    polymer.trim();
+    println!("{}", polymer);
+    polymer.chars().count()
 }
 
 pub fn day5() {
