@@ -37,9 +37,7 @@ pub fn part1(input: &str) -> usize {
         }).for_each(|_x| {;});
         polymer = reaction;
     }
-    polymer.trim();
-    println!("{}", polymer);
-    polymer.chars().count()
+    polymer.replace(" ", "").chars().count()
 }
 
 pub fn day5() {
