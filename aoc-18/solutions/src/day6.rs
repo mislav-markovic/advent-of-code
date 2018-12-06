@@ -2,6 +2,7 @@ use crate::input_reader;
 
 type point_t = (isize, isize);
 
+#[derive(Debug)]
 struct BoundingBox {
     top: isize,
     right: isize,
@@ -11,10 +12,10 @@ struct BoundingBox {
 
 impl BoundingBox {
     fn determine_box(points: &[point_t]) -> BoundingBox {
-        let top = points.iter().min_by_key(|p| p.0).unwrap().0 + 1;
-        let left = points.iter().min_by_key(|p| p.1).unwrap().1 + 1;
-        let bottom = points.iter().max_by_key(|p| p.0).unwrap().0 - 1;
-        let right = points.iter().max_by_key(|p| p.1).unwrap().1 + 1;
+        let top = points.iter().min_by_key(|p| p.0).unwrap().0;
+        let left = points.iter().min_by_key(|p| p.1).unwrap().1;
+        let bottom = points.iter().max_by_key(|p| p.1).unwrap().1;
+        let right = points.iter().max_by_key(|p| p.0).unwrap().0;
 
         BoundingBox {
             top,
@@ -26,7 +27,7 @@ impl BoundingBox {
 
     fn contains(&self, p: &point_t) -> bool {
         let (x, y) = *p;
-        x >= self.left && x <= self.right && y >= self.top && y <= self.bottom
+        x > self.left && x < self.right && y > self.top && y < self.bottom
     }
 
     fn iter(&self) -> BoxIter {
@@ -50,8 +51,8 @@ impl<'a> Iterator for BoxIter<'a> {
             None => None,
             Some(p) => {
                 self.curr_pos = match p {
-                    (x, y) if y >= self._box.bottom => None,
-                    (x, y) if x >= self._box.right => Some((self._box.left, y + 1)),
+                    (x, y) if y > self._box.bottom => None,
+                    (x, y) if x > self._box.right => Some((self._box.left, y + 1)),
                     (x, y) => Some((x + 1, y)),
                 };
                 self.curr_pos
@@ -72,10 +73,14 @@ fn closest_to(p: point_t, cords: &[point_t]) -> Closest {
         .iter()
         .map(|&cp| (cp, manhattan(p, cp)))
         .collect::<Vec<_>>();
-    let min = distances.iter().min().unwrap();
+    let (min_p, min_dist) = distances.iter().min_by_key(|(_, dist)| dist).unwrap();
 
-    match distances.iter().filter(|(_, dist)| *dist == min.1).count() {
-        x if x == 1 => One(min.0),
+    match distances
+        .iter()
+        .filter(|(_, dist)| *dist == *min_dist)
+        .count()
+    {
+        x if x == 1 => One(*min_p),
         _ => Several,
     }
 }
@@ -89,8 +94,10 @@ fn manhattan(p1: point_t, p2: point_t) -> isize {
 
 fn point(input: &str) -> point_t {
     let arr = input.split(",").collect::<Vec<_>>();
-    println!("{} {}", arr[0], arr[1]);
-    (arr[0].trim().parse().unwrap(), arr[1].trim().parse().unwrap())
+    (
+        arr[0].trim().parse().unwrap(),
+        arr[1].trim().parse().unwrap(),
+    )
 }
 
 fn do_the_job(input_location: &str) -> (point_t, u32) {
@@ -98,28 +105,30 @@ fn do_the_job(input_location: &str) -> (point_t, u32) {
     use std::collections::HashMap;
 
     let data = input_reader::read_all_lines(input_location);
-    let points = data.into_iter().map(|s| point(&s)).collect::<Vec<_>>();
-    let bound_box = BoundingBox::determine_box(&points);
-    let cords_in_box = points
-        .iter()
-        .filter(|p| bound_box.contains(p))
-        .map(|p| p.clone())
-        .collect::<Vec<_>>();
-    let mut counter: HashMap<point_t, u32> = HashMap::new();
+    let points = data.into_iter().map(|s| point(&s)).collect::<Vec<_>>(); //make points from user input
+    let bound_box = BoundingBox::determine_box(&points); //determine edges of box, finite area must be within
+    let mut counter: HashMap<point_t, u32> = HashMap::new(); //map from user point to number of points that are exclusively closest to it
 
     bound_box
         .iter()
-        .filter(|p| !points.contains(p))
-        .filter_map(|p| match closest_to(p, &cords_in_box) {
+        .filter_map(|p| match closest_to(p, &points) {
             Several => None,
             One(x) => Some(x),
-        }).for_each(|p| *counter.entry(p).or_insert(0) += 1);
+        })
+        .for_each(|p| *counter.entry(p).or_insert(0) += 1);
 
-    counter.into_iter().max_by_key(|(_, v)| *v).unwrap()
+    //println!("{:?}", bound_box);
+    //println!("{}", counter.len());
+    counter
+        .into_iter()
+        .filter(|(k, _)| bound_box.contains(k))
+        //.inspect(|a| println!("{:?}", a))
+        .max_by_key(|(_, v)| *v)
+        .unwrap()
 }
 
 pub fn day6() {
-    let input = String::from("day6_test");
+    let input = String::from("day6");
     println!("***Day Three***");
     println!("\tReading from {}", input);
     println!("\t**Part One**");
