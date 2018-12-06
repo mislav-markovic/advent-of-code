@@ -3,10 +3,10 @@ use crate::input_reader;
 type point_t = (isize, isize);
 
 struct BoundingBox {
-    top_left: point_t,
-    top_right: point_t,
-    bottom_left: point_t,
-    bottom_right: point_t,
+    top: isize,
+    right: isize,
+    bottom: isize,
+    left: isize,
 }
 
 impl BoundingBox {
@@ -16,11 +16,30 @@ impl BoundingBox {
         let bottom = points.iter().max_by_key(|p| p.0).unwrap().0;
         let right = points.iter().max_by_key(|p| p.1).unwrap().1;
 
-        BoundingBox {
-            top_left: (top, left),
-            top_right: (top, right),
-            bottom_left: (bottom, left),
-            bottom_right: (bottom, right),
+        BoundingBox {top, right, bottom, left}
+    }
+
+    fn iter(&self) -> BoxIter {
+        BoxIter {bounding_box: self, curr_pos: Some((self.left, self.top))}
+    }
+}
+
+struct BoxIter<'a> {
+    bounding_box: &'a BoundingBox,
+    curr_pos: Option<point_t>,
+}
+
+impl<'a> Iterator for BoxIter<'a> {
+        type Item = point_t;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.curr_pos {
+            None => None,
+            Some(p) => {
+                let next = match p {
+                    (x, _y) if x >= self.right => (s)
+                }
+            }
         }
     }
 }
@@ -28,7 +47,11 @@ impl BoundingBox {
 fn do_the_job(input_location: &str) -> u32 {
     let data = input_reader::read_all_lines(input_location);
     let points = data.into_iter().map(|s| point(&s)).collect::<Vec<_>>();
-    let bound_box = BoundingBox::determine_box(&points); 
+    let bound_box = BoundingBox::determine_box(&points);
+
+
+
+
     0
 }
 
