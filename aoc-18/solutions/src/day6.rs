@@ -2,9 +2,33 @@ use crate::input_reader;
 
 type point_t = (isize, isize);
 
+struct BoundingBox {
+    top_left: point_t,
+    top_right: point_t,
+    bottom_left: point_t,
+    bottom_right: point_t,
+}
+
+impl BoundingBox {
+    fn determine_box(points: &Vec<point_t>) -> BoundingBox {
+        let top = points.iter().min_by_key(|p| p.0).unwrap().0;
+        let left = points.iter().min_by_key(|p| p.1).unwrap().1;
+        let bottom = points.iter().max_by_key(|p| p.0).unwrap().0;
+        let right = points.iter().max_by_key(|p| p.1).unwrap().1;
+
+        BoundingBox {
+            top_left: (top, left),
+            top_right: (top, right),
+            bottom_left: (bottom, left),
+            bottom_right: (bottom, right),
+        }
+    }
+}
+
 fn do_the_job(input_location: &str) -> u32 {
     let data = input_reader::read_all_lines(input_location);
-
+    let points = data.into_iter().map(|s| point(&s)).collect::<Vec<_>>();
+    let bound_box = BoundingBox::determine_box(&points); 
     0
 }
 
