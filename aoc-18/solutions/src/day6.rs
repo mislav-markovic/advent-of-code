@@ -85,6 +85,10 @@ fn closest_to(p: point_t, cords: &[point_t]) -> Closest {
     }
 }
 
+fn dist_sum(p: point_t, cords: &[point_t]) -> isize {
+    cords.iter().map(|&cp| manhattan(p, cp)).sum()
+}
+
 fn manhattan(p1: point_t, p2: point_t) -> isize {
     let (x1, y1) = p1;
     let (x2, y2) = p2;
@@ -100,7 +104,7 @@ fn point(input: &str) -> point_t {
     )
 }
 
-fn do_the_job(input_location: &str) -> (point_t, u32) {
+fn part1(input_location: &str) -> (point_t, u32) {
     use self::Closest::*;
     use std::collections::HashMap;
 
@@ -117,25 +121,63 @@ fn do_the_job(input_location: &str) -> (point_t, u32) {
         })
         .for_each(|p| *counter.entry(p).or_insert(0) += 1);
 
-    //println!("{:?}", bound_box);
-    //println!("{}", counter.len());
     counter
         .into_iter()
         .filter(|(k, _)| bound_box.contains(k))
-        //.inspect(|a| println!("{:?}", a))
         .max_by_key(|(_, v)| *v)
         .unwrap()
 }
 
+fn part2(input_location: &str) -> usize {
+    let data = input_reader::read_all_lines(input_location);
+    let points = data.into_iter().map(|s| point(&s)).collect::<Vec<_>>(); //make points from user input
+    let bound_box = BoundingBox::determine_box(&points);
+    let threshold = 10000; //Defined in task
+
+    bound_box
+        .iter()
+        .map(|p| dist_sum(p, &points))
+        .filter(|&d| d < threshold)
+        .count()
+}
+
 pub fn day6() {
     let input = String::from("day6");
-    println!("***Day Three***");
+    println!("***Day Six***");
     println!("\tReading from {}", input);
     println!("\t**Part One**");
-    println!("\t\tLargest non-infinite area: {:?}", do_the_job(&input));
-    //println!("\t**Part Two**");
-    //println!("\t\tClaim ID: {}", not_overlaping);
+    println!("\t\tLargest non-infinite area: {:?}", part1(&input));
+    println!("\t**Part Two**");
+    println!("\t\tRegion of close locations: {}", part2(&input));
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use crate::day6::*;
+    use crate::input_reader;
+
+    #[test]
+    fn dist_sum_test() {
+        let data = input_reader::read_all_lines(&String::from("day6_test"));
+        let points = data.into_iter().map(|s| point(&s)).collect::<Vec<_>>();
+
+        let d = dist_sum((4, 3), &points);
+        assert_eq!(d, 30);
+    }
+
+    #[test]
+    fn part2_test() {
+        let data = input_reader::read_all_lines(&String::from("day6_test"));
+        let points = data.into_iter().map(|s| point(&s)).collect::<Vec<_>>();
+        let bound_box = BoundingBox::determine_box(&points);
+        let test_threshold = 32;
+        let count =   bound_box
+        .iter()
+        .map(|p| dist_sum(p, &points))
+        .filter(|&d| d < test_threshold)
+        .count();
+
+        
+        assert_eq!(count, 16);
+    }
+}
