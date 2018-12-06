@@ -1,33 +1,33 @@
 use crate::input_reader;
 
-pub struct Freq {
+struct Freq {
     current: i32,
 }
 
 impl Freq {
-    pub fn new() -> Freq {
+    fn new() -> Freq {
         Freq { current: 0 }
     }
 
-    pub fn get_current(&self) -> i32 {
+    fn get_current(&self) -> i32 {
         self.current
     }
 
-    pub fn calibrate(&mut self, change: i32) -> i32 {
+    fn calibrate(&mut self, change: i32) -> i32 {
         self.current += change;
         self.current
     }
 
-    pub fn calibrate_str(&mut self, change: &str) -> i32 {
+    fn calibrate_str(&mut self, change: &str) -> i32 {
         self.calibrate(change.parse().unwrap())
     }
 
-    pub fn calibrate_all(&mut self, changes: &[i32]) -> i32 {
+    fn calibrate_all(&mut self, changes: &[i32]) -> i32 {
         self.current += changes.iter().sum::<i32>();
         self.current
     }
 
-    pub fn calibrate_str_all(&mut self, changes: &[&str]) -> i32 {
+    fn calibrate_str_all(&mut self, changes: &[&str]) -> i32 {
         let transform = changes
             .iter()
             .map(|elem| elem.parse().unwrap())
@@ -36,14 +36,14 @@ impl Freq {
     }
 }
 
-pub fn part1(input_location: &str) -> i32 {
+fn part1(input_location: &str) -> i32 {
     let mut freq = Freq::new();
     let data = input_reader::read_all_lines(input_location);
     let input = data.iter().map(|s| &s[..]).collect::<Vec<&str>>();
     freq.calibrate_str_all(&input[..])
 }
 
-pub fn part2(input_location: &str) -> i32 {
+fn part2(input_location: &str) -> i32 {
     use std::collections::HashSet;
 
     let mut freq = Freq::new();

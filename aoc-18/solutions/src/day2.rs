@@ -4,7 +4,7 @@ use std::collections::HashMap;
 type map_t = HashMap<char, u32>;
 type pair_t = Option<(String, String)>;
 
-pub struct Checksum {
+struct Checksum {
     doubles: u32,
     triples: u32,
     processed_inputs: Vec<String>,
@@ -21,7 +21,7 @@ impl Checksum {
         }
     }
 
-    pub fn add(&mut self, input: &str) {
+    fn add(&mut self, input: &str) {
         let mut map = map_t::new();
 
         input.chars().for_each(|c| *map.entry(c).or_insert(0) += 1);
@@ -39,11 +39,11 @@ impl Checksum {
         self.processed_inputs.push(String::from(input));
     }
 
-    pub fn get_checksum(&self) -> u32 {
+    fn get_checksum(&self) -> u32 {
         self.doubles * self.triples
     }
 
-    pub fn get_common_chars(&self) -> String {
+    fn get_common_chars(&self) -> String {
         let (l, r) = self.closest_pair.clone().unwrap();
 
         l.chars()

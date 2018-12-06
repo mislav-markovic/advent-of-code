@@ -4,8 +4,7 @@ use std::collections::HashMap;
 type area_t = HashMap<point_t, u32>;
 type point_t = (u32, u32);
 
-
-pub struct Rectangle {
+struct Rectangle {
     id: u32,
     width: u32,
     height: u32,
@@ -14,7 +13,7 @@ pub struct Rectangle {
 }
 
 impl Rectangle {
-    pub fn new(
+    fn new(
         id: u32,
         width: u32,
         height: u32,
@@ -30,7 +29,7 @@ impl Rectangle {
         }
     }
 
-    pub fn from_str(input: &str) -> Rectangle {
+    fn from_str(input: &str) -> Rectangle {
         let arr = input.split(' ').collect::<Vec<&str>>();
         let mut cords = arr[2].split(',').collect::<Vec<&str>>();
         cords[1] = &cords[1][0..cords[1].len() - 1];
@@ -47,7 +46,7 @@ impl Rectangle {
         Rectangle::new(id, width, height, left_edge_distance, top_edge_distance)
     }
 
-    pub fn iter(&self) -> RectangleIter {
+    fn iter(&self) -> RectangleIter {
         RectangleIter {
             rect: self,
             iter_curr: Some((self.left_edge_distance, self.top_edge_distance)),
@@ -56,7 +55,7 @@ impl Rectangle {
     }
 }
 
-pub struct RectangleIter<'a> {
+struct RectangleIter<'a> {
     rect: &'a Rectangle,
     iter_curr: Option<point_t>,
     is_first: bool,
@@ -86,31 +85,31 @@ impl<'a> Iterator for RectangleIter<'a> {
     }
 }
 
-pub struct Fabric {
+struct Fabric {
     area: area_t,
     claims: Vec<Rectangle>,
 }
 
 impl Fabric {
-    pub fn new() -> Fabric {
+    fn new() -> Fabric {
         Fabric {
             area: area_t::new(),
             claims: Vec::new(),
         }
     }
 
-    pub fn add_claim(&mut self, claim: Rectangle) {
+    fn add_claim(&mut self, claim: Rectangle) {
         claim
             .iter()
             .for_each(|(x, y)| *self.area.entry((x, y)).or_insert(0) += 1);
         self.claims.push(claim);
     }
 
-    pub fn overlap(&self) -> u32 {
+    fn overlap(&self) -> u32 {
         self.area.values().filter(|&&x| x > 1).count() as u32
     }
 
-    pub fn unoverlaping_claim(&self) -> u32 {
+    fn unoverlaping_claim(&self) -> u32 {
         self.claims
             .iter()
             .filter(|r| !self.is_overlaping(&r))

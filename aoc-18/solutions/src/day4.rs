@@ -72,7 +72,7 @@ impl Guard {
 
         match map.into_iter().max_by_key(|(_k, v)| *v) {
             None => (self.id, 0),
-            Some(v) => v
+            Some(v) => v,
         }
     }
 }
@@ -176,7 +176,7 @@ fn part2(guards: &HashMap<u32, Guard>) -> u32 {
         .max_by_key(|(_k, v)| *v)
         .unwrap()
         .0;
-        
+
     let guard = guards.get(g_id).unwrap();
 
     guard.id * guard.most_slept_minute().0
