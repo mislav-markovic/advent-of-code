@@ -5,6 +5,7 @@ mod day2;
 mod day3;
 mod day4;
 mod day5;
+mod day6;
 mod input_reader;
 
 use lazy_static::lazy_static;
@@ -37,6 +38,7 @@ lazy_static! {
         m.insert("day3", day3::day3 as fn());
         m.insert("day4", day4::day4 as fn());
         m.insert("day5", day5::day5 as fn());
+        m.insert("day6", day6::day6 as fn());
         m
     };
 }
