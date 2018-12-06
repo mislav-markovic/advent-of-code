@@ -20,12 +20,12 @@ impl BoundingBox {
     }
 
     fn iter(&self) -> BoxIter {
-        BoxIter {bounding_box: self, curr_pos: Some((self.left, self.top))}
+        BoxIter {_box: self, curr_pos: Some((self.left, self.top))}
     }
 }
 
 struct BoxIter<'a> {
-    bounding_box: &'a BoundingBox,
+    _box: &'a BoundingBox,
     curr_pos: Option<point_t>,
 }
 
@@ -36,9 +36,13 @@ impl<'a> Iterator for BoxIter<'a> {
         match self.curr_pos {
             None => None,
             Some(p) => {
-                let next = match p {
-                    (x, _y) if x >= self.right => (s)
-                }
+                self.curr_pos = match p {
+                    (x, y) if y >= self._box.bottom => None,
+                    (x, y) if x >= self._box.right => Some((self._box.left, y+1)),
+                    (x, y) => Some((x+1, y))
+
+                };
+                self.curr_pos
             }
         }
     }
