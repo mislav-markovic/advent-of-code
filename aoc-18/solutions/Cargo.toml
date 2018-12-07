@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 lazy_static = "1.2.0"
 regex = "1"
+elapsed = "0.1.2"

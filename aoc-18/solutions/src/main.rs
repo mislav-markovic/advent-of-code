@@ -10,6 +10,7 @@ mod day6;
 mod day7;
 mod input_reader;
 
+use elapsed::measure_time;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
@@ -17,19 +18,15 @@ fn main() -> Result<(), std::option::NoneError> {
     use std::env;
     let args: Vec<String> = env::args().collect();
 
-    if args.len() == 1 {
-        let mut v = HASHMAP
-            .iter()
-            .map(|(k, v)| (&k[..], v))
-            .collect::<Vec<(&str, &fn())>>();
-        v.sort_by_key(|k| k.0);
-        v.iter().for_each(|t| t.1());
-    } else {
-        let day = &args[1];
-        //let part = &args[2];
+    let mut v = HASHMAP
+        .iter()
+        .filter(|(&k, _)| if args.len() == 1 { true } else { k == args[2] })
+        .map(|(k, v)| (&k[..], v))
+        .collect::<Vec<(&str, &fn())>>();
+    v.sort_by_key(|k| k.0);
 
-        HASHMAP.get(day.as_str())?();
-    }
+    let (elapsed, _) = measure_time(|| v.iter().for_each(|t| t.1()));
+    println!("Run Time = {}", elapsed);
 
     Ok(())
 }
