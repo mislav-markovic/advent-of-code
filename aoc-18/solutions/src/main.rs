@@ -1,4 +1,5 @@
 #![feature(try_trait)]
+#![feature(vec_remove_item)]
 
 mod day1;
 mod day2;
