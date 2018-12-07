@@ -171,13 +171,12 @@ mod tests {
         let points = data.into_iter().map(|s| point(&s)).collect::<Vec<_>>();
         let bound_box = BoundingBox::determine_box(&points);
         let test_threshold = 32;
-        let count =   bound_box
-        .iter()
-        .map(|p| dist_sum(p, &points))
-        .filter(|&d| d < test_threshold)
-        .count();
+        let count = bound_box
+            .iter()
+            .map(|p| dist_sum(p, &points))
+            .filter(|&d| d < test_threshold)
+            .count();
 
-        
         assert_eq!(count, 16);
     }
 }
