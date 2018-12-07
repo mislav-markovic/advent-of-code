@@ -16,6 +16,6 @@ pub fn read_all_lines(file_name: &str) -> Vec<String> {
 }
 
 fn open_file(file_name: &str) -> File {
-    let relative_path = String::from("input/".to_owned() + file_name);
+    let relative_path = "input/".to_owned() + file_name;
     File::open(relative_path).expect("file not found")
 }

@@ -6,13 +6,15 @@ use std::collections::{HashSet, HashMap};
 #[derive(Debug)]
 struct Step {
     id: char,
-    prerequisites: HashSet<char>
+    prerequisites: HashSet<char>,
+    time: u32
 }
 
 impl Step {
     fn new(id: char) -> Step {
         let prerequisites = HashSet::new();
-        Step {id, prerequisites}
+        let time = u32::from(60 + (id as u8 - (b'A')));
+        Step {id, prerequisites, time}
     }
 
     fn parse_line(input: &str) -> (Step, char) {
@@ -38,12 +40,28 @@ impl Step {
         }
     }
 
-    fn prereq_finished(&mut self, prereq: &char) {
-        self.prerequisites.remove(prereq);
+    fn prereq_finished(&mut self, prereq: char) {
+        self.prerequisites.remove(&prereq);
     }
 
     fn is_ready(&self) -> bool {
         self.prerequisites.is_empty()
+    }
+}
+
+struct Workers<'a> {
+    steps: Vec<&'a mut Step>,
+    number_of_workers: usize
+}
+
+impl<'a> Workers<'a> {
+    fn new(number_of_workers: usize) -> Workers<'a> {
+        let steps = Vec::with_capacity(number_of_workers);
+        Workers {steps, number_of_workers}
+    }
+
+    fn work(&mut self) {
+        self.steps.iter_mut().for_each(|s| s.time -= 1);
     }
 }
 
@@ -54,18 +72,18 @@ fn part1(input: &str) -> String {
     for l in data {
         let (s, prereq) = Step::parse_line(&l);
         steps.entry(s.id).or_insert(s).add_prereq(prereq);        
-        steps.entry(prereq).or_insert(Step::new(prereq));
+        steps.entry(prereq).or_insert_with(|| Step::new(prereq));
     }
     
-    let mut ids = steps.keys().map(|val| val.clone()).collect::<Vec<_>>();
+    let mut ids = steps.keys().cloned().collect::<Vec<_>>();
     let mut result = String::new();
     ids.sort();
 
     while !ids.is_empty() {
-        let first: char = *ids.iter().skip_while(|c| !steps.get(c).unwrap().is_ready()).next().unwrap();
+        let first: char = *ids.iter().skip_while(|c| !&steps[c].is_ready()).next().unwrap();
         ids.remove_item(&first);
         steps.remove(&first);
-        steps.iter_mut().for_each(|(_, v)| v.prereq_finished(&first));
+        steps.iter_mut().for_each(|(_, v)| v.prereq_finished(first));
         result.push(first);
     }
 
@@ -73,9 +91,30 @@ fn part1(input: &str) -> String {
     result
 }
 
-fn part2(input: &str) -> usize {
-    let data = input_reader::read_all(input);
-    0
+fn part2(input: &str) -> String {
+    let data = input_reader::read_all_lines(input);
+    let mut steps = HashMap::new();
+    let mut workers: Vec<&mut Step> = Vec::new();
+
+    for l in data {
+        let (s, prereq) = Step::parse_line(&l);
+        steps.entry(s.id).or_insert(s).add_prereq(prereq);        
+        steps.entry(prereq).or_insert_with(|| Step::new(prereq));
+    }
+    
+    let mut ids = steps.keys().cloned().collect::<Vec<_>>();
+    let mut result = String::new();
+    ids.sort();
+
+    while !ids.is_empty() {
+        let first: char = *ids.iter().skip_while(|c| !&steps[c].is_ready()).next().unwrap();
+        ids.remove_item(&first);
+        steps.remove(&first);
+        steps.iter_mut().for_each(|(_, v)| v.prereq_finished(first));
+        result.push(first);
+    }
+
+    result
 }
 
 pub fn day7() {
