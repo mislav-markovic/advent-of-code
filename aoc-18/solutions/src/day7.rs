@@ -3,6 +3,7 @@ use regex::Regex;
 use lazy_static::lazy_static;
 use std::collections::{HashSet, HashMap};
 
+#[derive(Debug)]
 struct Step {
     id: char,
     prerequisites: HashSet<char>
@@ -20,8 +21,8 @@ impl Step {
         }
 
         let ids = RE.captures(input).unwrap();
-        let id = ids.get(1).map_or(' ', |m| m.as_str().chars().nth(0).unwrap());
-        let prereq = ids.get(2).map_or(' ', |m| m.as_str().chars().nth(0).unwrap());
+        let prereq = ids.get(1).map_or(' ', |m| m.as_str().chars().nth(0).unwrap());
+        let id = ids.get(2).map_or(' ', |m| m.as_str().chars().nth(0).unwrap());
         let mut step = Step::new(id);
         step.add_prereq(prereq);
         (step, prereq)
@@ -78,7 +79,7 @@ fn part2(input: &str) -> usize {
 }
 
 pub fn day7() {
-    let input = String::from("day7_test");
+    let input = String::from("day7");
 
     println!("***Day Seven***");
     println!("\tReading from {}", input);
@@ -95,8 +96,8 @@ mod tests {
     fn parste_step_test(){
         let text = "Step C must be finished before step A can begin.";
         let (step, _) = Step::parse_line(text);
-        assert_eq!('C', step.id);
+        assert_eq!('A', step.id);
         assert_eq!(1, step.prerequisites.len());
-        assert_eq!('A', *step.prerequisites.get(& 'A').unwrap());
+        assert_eq!('C', *step.prerequisites.get(& 'A').unwrap());
     }
 }
