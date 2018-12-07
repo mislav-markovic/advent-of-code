@@ -1,6 +1,6 @@
 use crate::input_reader;
 
-type point_t = (isize, isize);
+type Point = (isize, isize);
 
 #[derive(Debug)]
 struct BoundingBox {
@@ -11,7 +11,7 @@ struct BoundingBox {
 }
 
 impl BoundingBox {
-    fn determine_box(points: &[point_t]) -> BoundingBox {
+    fn determine_box(points: &[Point]) -> BoundingBox {
         let top = points.iter().min_by_key(|p| p.0).unwrap().0;
         let left = points.iter().min_by_key(|p| p.1).unwrap().1;
         let bottom = points.iter().max_by_key(|p| p.1).unwrap().1;
@@ -25,7 +25,7 @@ impl BoundingBox {
         }
     }
 
-    fn contains(&self, p: &point_t) -> bool {
+    fn contains(&self, p: &Point) -> bool {
         let (x, y) = *p;
         x > self.left && x < self.right && y > self.top && y < self.bottom
     }
@@ -40,18 +40,18 @@ impl BoundingBox {
 
 struct BoxIter<'a> {
     _box: &'a BoundingBox,
-    curr_pos: Option<point_t>,
+    curr_pos: Option<Point>,
 }
 
 impl<'a> Iterator for BoxIter<'a> {
-    type Item = point_t;
+    type Item = Point;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.curr_pos {
             None => None,
             Some(p) => {
                 self.curr_pos = match p {
-                    (x, y) if y > self._box.bottom => None,
+                    (_, y) if y > self._box.bottom => None,
                     (x, y) if x > self._box.right => Some((self._box.left, y + 1)),
                     (x, y) => Some((x + 1, y)),
                 };
@@ -62,11 +62,11 @@ impl<'a> Iterator for BoxIter<'a> {
 }
 
 enum Closest {
-    One(point_t),
+    One(Point),
     Several,
 }
 
-fn closest_to(p: point_t, cords: &[point_t]) -> Closest {
+fn closest_to(p: Point, cords: &[Point]) -> Closest {
     use self::Closest::*;
 
     let distances = cords
@@ -85,33 +85,33 @@ fn closest_to(p: point_t, cords: &[point_t]) -> Closest {
     }
 }
 
-fn dist_sum(p: point_t, cords: &[point_t]) -> isize {
+fn dist_sum(p: Point, cords: &[Point]) -> isize {
     cords.iter().map(|&cp| manhattan(p, cp)).sum()
 }
 
-fn manhattan(p1: point_t, p2: point_t) -> isize {
+fn manhattan(p1: Point, p2: Point) -> isize {
     let (x1, y1) = p1;
     let (x2, y2) = p2;
 
     (x1 - x2).abs() + (y1 - y2).abs()
 }
 
-fn point(input: &str) -> point_t {
-    let arr = input.split(",").collect::<Vec<_>>();
+fn point(input: &str) -> Point {
+    let arr = input.split(',').collect::<Vec<_>>();
     (
         arr[0].trim().parse().unwrap(),
         arr[1].trim().parse().unwrap(),
     )
 }
 
-fn part1(input_location: &str) -> (point_t, u32) {
+fn part1(input_location: &str) -> (Point, u32) {
     use self::Closest::*;
     use std::collections::HashMap;
 
     let data = input_reader::read_all_lines(input_location);
     let points = data.into_iter().map(|s| point(&s)).collect::<Vec<_>>(); //make points from user input
     let bound_box = BoundingBox::determine_box(&points); //determine edges of box, finite area must be within
-    let mut counter: HashMap<point_t, u32> = HashMap::new(); //map from user point to number of points that are exclusively closest to it
+    let mut counter: HashMap<Point, u32> = HashMap::new(); //map from user point to number of points that are exclusively closest to it
 
     bound_box
         .iter()

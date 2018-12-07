@@ -2,55 +2,26 @@ use crate::input_reader;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-type guard_id_t = u32;
-type minutes_t = HashSet<u32>;
-type shifts_t = Vec<Shift>;
-
-#[derive(PartialEq, Clone)]
-struct Date {
-    year: u32,
-    month: u32,
-    day: u32,
-}
-
-impl Date {
-    fn as_empty() -> Date {
-        Date {
-            year: 0,
-            month: 0,
-            day: 0,
-        }
-    }
-    fn new(year: u32, month: u32, day: u32) -> Date {
-        Date { year, month, day }
-    }
-
-    fn from_str(date: &str) -> Date {
-        let arr = date.split('-').collect::<Vec<_>>();
-        Date {
-            year: arr[0].parse().unwrap(),
-            month: arr[1].parse().unwrap(),
-            day: arr[2].parse().unwrap(),
-        }
-    }
-}
+type GuardId = u32;
+type Minutes = HashSet<u32>;
+type Shifts = Vec<Shift>;
 
 struct Guard {
-    id: guard_id_t,
-    shifts: shifts_t,
+    id: GuardId,
+    shifts: Shifts,
 }
 
 impl Guard {
     fn as_empty() -> Guard {
         Guard {
             id: 0,
-            shifts: shifts_t::new(),
+            shifts: Shifts::new(),
         }
     }
-    fn new(id: guard_id_t) -> Guard {
+    fn new(id: GuardId) -> Guard {
         Guard {
             id,
-            shifts: shifts_t::new(),
+            shifts: Shifts::new(),
         }
     }
 
@@ -78,21 +49,13 @@ impl Guard {
 }
 
 struct Shift {
-    date: Date,
-    minutes_asleep: minutes_t,
+    minutes_asleep: Minutes,
 }
 
 impl Shift {
-    fn as_empty() -> Shift {
+    fn new() -> Shift {
         Shift {
-            date: Date::as_empty(),
-            minutes_asleep: minutes_t::new(),
-        }
-    }
-    fn new(date: Date) -> Shift {
-        Shift {
-            date,
-            minutes_asleep: minutes_t::new(),
+            minutes_asleep: Minutes::new(),
         }
     }
 
@@ -113,12 +76,11 @@ fn do_the_job(input_location: &str) -> HashMap<u32, Guard> {
 
     let mut curr_guard: &mut Guard = &mut Guard::as_empty();
     let mut fell_asleep = 0u32;
-    let mut curr_shift = Shift::as_empty();
+    let mut curr_shift = Shift::new();
     let mut is_first = true;
 
     for l in data.iter() {
         let split = l.split(' ').collect::<Vec<_>>();
-        let date = Date::from_str(&split[0][1..]);
         let time = split[1][0..split[1].len() - 1]
             .split(':')
             .skip(1)
@@ -130,17 +92,17 @@ fn do_the_job(input_location: &str) -> HashMap<u32, Guard> {
 
         if is_first {
             is_first = false;
-            curr_shift = Shift::new(date);
+            curr_shift = Shift::new();
             let id = split[3][1..].parse::<u32>().unwrap();
-            curr_guard = guards.entry(id).or_insert(Guard::new(id));
+            curr_guard = guards.entry(id).or_insert_with(|| Guard::new(id));
         } else {
             match split[2] {
                 "Guard" => {
                     curr_guard.add_shift(curr_shift);
-                    curr_shift = Shift::new(date);
+                    curr_shift = Shift::new();
 
                     let id = split[3][1..].parse::<u32>().unwrap();
-                    curr_guard = guards.entry(id).or_insert(Guard::new(id));
+                    curr_guard = guards.entry(id).or_insert_with(|| Guard::new(id));
                 }
                 "falls" => {
                     fell_asleep = time;

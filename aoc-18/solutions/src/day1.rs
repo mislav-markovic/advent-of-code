@@ -18,10 +18,6 @@ impl Freq {
         self.current
     }
 
-    fn calibrate_str(&mut self, change: &str) -> i32 {
-        self.calibrate(change.parse().unwrap())
-    }
-
     fn calibrate_all(&mut self, changes: &[i32]) -> i32 {
         self.current += changes.iter().sum::<i32>();
         self.current
@@ -110,56 +106,6 @@ mod tests {
         f.calibrate(5);
         f.calibrate(-2);
         assert_eq!(f.get_current(), 3);
-    }
-
-    #[test]
-    fn add_str() {
-        let mut f = Freq::new();
-        f.calibrate_str("+4");
-        assert_eq!(f.get_current(), 4);
-    }
-
-    #[test]
-    fn sub_str() {
-        let mut f = Freq::new();
-        f.calibrate_str("-2");
-        assert_eq!(f.get_current(), -2);
-    }
-
-    #[test]
-    fn add_sub_str() {
-        let mut f = Freq::new();
-        f.calibrate_str("+5");
-        f.calibrate_str("-2");
-        assert_eq!(f.get_current(), 3);
-    }
-
-    #[test]
-    fn complex_case_1() {
-        let mut f = Freq::new();
-
-        f.calibrate(5);
-        f.calibrate(-7);
-        f.calibrate(12);
-
-        f.calibrate_str("+10");
-        f.calibrate_str("-2");
-        f.calibrate_str("-8");
-        assert_eq!(f.get_current(), 10);
-    }
-
-    #[test]
-    fn complex_case_2() {
-        let mut f = Freq::new();
-
-        f.calibrate(5);
-        f.calibrate_str("+10");
-        f.calibrate(-7);
-        f.calibrate_str("-2");
-        f.calibrate(12);
-        f.calibrate_str("-8");
-
-        assert_eq!(f.get_current(), 10);
     }
 
     #[test]

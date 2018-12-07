@@ -42,12 +42,6 @@ impl Step {
         self.prerequisites.insert(prereq);
     }
 
-    fn add_multi(&mut self, prereqs: &[char]) {
-        for c in prereqs.iter() {
-            self.add_prereq(*c);
-        }
-    }
-
     fn prereq_finished(&mut self, prereq: char) {
         self.prerequisites.remove(&prereq);
     }
@@ -141,6 +135,7 @@ fn part1(input: &str) -> String {
             .skip_while(|c| !&steps[c].is_ready())
             .next()
             .unwrap();
+
         ids.remove_item(&first);
         steps.remove(&first);
         steps.iter_mut().for_each(|(_, v)| v.prereq_finished(first));
@@ -165,7 +160,7 @@ fn part2(input: &str) -> u32 {
     ids.sort();
 
     while !ids.is_empty() {
-        let ready: Vec<char> = ids
+        let ready: Vec<char> = ids //get ids of steps are ready to be worked
             .iter()
             .filter(|c| steps[c].is_ready())
             .take(workers.free_workers())
@@ -173,19 +168,24 @@ fn part2(input: &str) -> u32 {
             .collect::<Vec<_>>();
 
         ready.into_iter().for_each(|c| {
+            //start working on step, if work is started remove it from ids
             if workers.add_step(steps[&c].clone()) {
                 ids.remove_item(&c);
             }
         });
-        let finished_work = workers.work();
-        steps
+
+        let finished_work = workers.work(); //work for a unit of time and get steps that are done in this second
+        steps //go through steps and remove finished prereqs
             .iter_mut()
             .for_each(|(_, v)| v.prereq_finished_multi(&finished_work));
+
+        //remove finished steps from map
         finished_work.iter().for_each(|w| {
             steps.remove(w);
         });
     }
 
+    //last tasks that are not prereq for any other step still need to finish
     while workers.is_working() {
         workers.work();
     }
@@ -208,11 +208,11 @@ pub fn day7() {
 mod tests {
     use super::Step;
     #[test]
-    fn parste_step_test() {
+    fn parse_step_test() {
         let text = "Step C must be finished before step A can begin.";
         let (step, _) = Step::parse_line(text);
         assert_eq!('A', step.id);
         assert_eq!(1, step.prerequisites.len());
-        assert_eq!('C', *step.prerequisites.get(&'A').unwrap());
+        assert_eq!('C', *step.prerequisites.iter().take(1).next().unwrap());
     }
 }

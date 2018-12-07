@@ -1,8 +1,8 @@
 use crate::input_reader;
 use std::collections::HashMap;
 
-type area_t = HashMap<point_t, u32>;
-type point_t = (u32, u32);
+type Area = HashMap<Point, u32>;
+type Point = (u32, u32);
 
 struct Rectangle {
     id: u32,
@@ -57,7 +57,7 @@ impl Rectangle {
 
 struct RectangleIter<'a> {
     rect: &'a Rectangle,
-    iter_curr: Option<point_t>,
+    iter_curr: Option<Point>,
     is_first: bool,
 }
 
@@ -86,14 +86,14 @@ impl<'a> Iterator for RectangleIter<'a> {
 }
 
 struct Fabric {
-    area: area_t,
+    area: Area,
     claims: Vec<Rectangle>,
 }
 
 impl Fabric {
     fn new() -> Fabric {
         Fabric {
-            area: area_t::new(),
+            area: Area::new(),
             claims: Vec::new(),
         }
     }
@@ -109,20 +109,20 @@ impl Fabric {
         self.area.values().filter(|&&x| x > 1).count() as u32
     }
 
-    fn unoverlaping_claim(&self) -> u32 {
+    fn non_overlapping_claim(&self) -> u32 {
         self.claims
             .iter()
-            .filter(|r| !self.is_overlaping(&r))
+            .filter(|r| !self.is_overlapping(&r))
             .take(1)
             .next()
             .unwrap()
             .id
     }
 
-    fn is_overlaping(&self, rect: &Rectangle) -> bool {
+    fn is_overlapping(&self, rect: &Rectangle) -> bool {
         rect.iter()
-            .map(|x| *self.area.get(&x).unwrap())
-            .filter(|x| *x > 1)
+            .map(|x| &self.area[&x])
+            .filter(|&&x| x > 1)
             .count()
             > 0
     }
@@ -136,18 +136,19 @@ fn do_the_job(input_location: &str) -> (u32, u32) {
         fabric.add_claim(Rectangle::from_str(&l));
     }
 
-    (fabric.overlap(), fabric.unoverlaping_claim())
+    (fabric.overlap(), fabric.non_overlapping_claim())
 }
 
 pub fn day3() {
     let input = String::from("day3");
-    let (overlap, not_overlaping) = do_the_job(&input);
+    let (overlap, not_overlapping) = do_the_job(&input);
+
     println!("***Day Three***");
     println!("\tReading from {}", input);
     println!("\t**Part One**");
-    println!("\t\tOverlaping inches: {}", overlap);
+    println!("\t\tOverlapping inches: {}", overlap);
     println!("\t**Part Two**");
-    println!("\t\tClaim ID: {}", not_overlaping);
+    println!("\t\tClaim ID: {}", not_overlapping);
 }
 
 #[cfg(test)]
@@ -218,7 +219,7 @@ mod tests {
     }
 
     #[test]
-    fn unoverlap_test_1() {
+    fn non_overlapping_test_1() {
         let r1 = Rectangle::from_str("#1 @ 1,3: 4x4");
         let r2 = Rectangle::from_str("#2 @ 3,1: 4x4");
         let r3 = Rectangle::from_str("#3 @ 5,5: 2x2");
@@ -227,6 +228,6 @@ mod tests {
         f.add_claim(r2);
         f.add_claim(r3);
 
-        assert_eq!(f.unoverlaping_claim(), 3);
+        assert_eq!(f.non_overlapping_claim(), 3);
     }
 }

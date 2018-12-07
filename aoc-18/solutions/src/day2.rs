@@ -1,14 +1,14 @@
 use crate::input_reader;
 
 use std::collections::HashMap;
-type map_t = HashMap<char, u32>;
-type pair_t = Option<(String, String)>;
+type Map = HashMap<char, u32>;
+type Pair = Option<(String, String)>;
 
 struct Checksum {
     doubles: u32,
     triples: u32,
     processed_inputs: Vec<String>,
-    closest_pair: pair_t,
+    closest_pair: Pair,
 }
 
 impl Checksum {
@@ -22,7 +22,7 @@ impl Checksum {
     }
 
     fn add(&mut self, input: &str) {
-        let mut map = map_t::new();
+        let mut map = Map::new();
 
         input.chars().for_each(|c| *map.entry(c).or_insert(0) += 1);
         if Checksum::contains_double(&map) {
@@ -60,11 +60,11 @@ impl Checksum {
         }
     }
 
-    fn contains_double(map: &map_t) -> bool {
+    fn contains_double(map: &Map) -> bool {
         map.iter().map(|(_k, v)| v).filter(|v| **v == 2u32).count() > 0
     }
 
-    fn contains_triple(map: &map_t) -> bool {
+    fn contains_triple(map: &Map) -> bool {
         map.iter().map(|(_k, v)| v).filter(|v| **v == 3u32).count() > 0
     }
 
