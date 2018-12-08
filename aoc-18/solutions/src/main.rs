@@ -18,10 +18,10 @@ use std::collections::HashMap;
 fn main() -> Result<(), std::option::NoneError> {
     use std::env;
     let args: Vec<String> = env::args().collect();
-
+    println!("{}", args.len());
     let mut v = HASHMAP
         .iter()
-        .filter(|(&k, _)| if args.len() == 1 { true } else { k == args[2] })
+        .filter(|(&k, _)| if args.len() == 1 { true } else { k == args[1] })
         .map(|(k, v)| (&k[..], v))
         .collect::<Vec<(&str, &fn())>>();
     v.sort_by_key(|k| k.0);
