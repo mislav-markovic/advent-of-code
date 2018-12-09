@@ -1,15 +1,12 @@
 use crate::input_reader;
 
-fn part1(input: &str) {
-
-}
+fn part1(input: &str) {}
 
 fn part2(input: &str) {
     let data = input_reader::read_all(input);
-
 }
 
-pub fn day9() {
+pub fn day10() {
     let input = String::from("day10");
 
     println!("***Day Ten***");

@@ -2,6 +2,7 @@
 #![feature(vec_remove_item)]
 
 mod day1;
+mod day10;
 mod day2;
 mod day3;
 mod day4;
@@ -45,6 +46,7 @@ lazy_static! {
         m.insert("day7", day7::day7 as fn());
         m.insert("day8", day8::day8 as fn());
         m.insert("day9", day9::day9 as fn());
+        m.insert("day10", day10::day10 as fn());
         m
     };
 }
