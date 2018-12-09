@@ -21,9 +21,9 @@ impl<'a> Circle<'a> {
     fn play(&mut self, marble: usize, player: usize) {
         if marble == 0 {
             self.current_marble.insert(marble);
-            self.current_marble.next();
         } else if marble % 23 == 0 {
-            for _ in 0..=7 {
+            for _ in 0..7 {
+                //skip ghost node
                 if self.current_marble.peek_prev().is_none() {
                     self.current_marble.seek_backward(1)
                 }
@@ -31,16 +31,16 @@ impl<'a> Circle<'a> {
             }
             self.players[player] += marble;
             self.players[player] += self.current_marble.remove().unwrap();
-            self.current_marble.next();
         } else {
-            if self.current_marble.peek_next().is_none() {
-                self.current_marble.seek_forward(2);
-            } else {
+            for _ in 0..2 {
+                //skip ghost node
+                if self.current_marble.peek_next().is_none() {
+                    self.current_marble.seek_forward(1)
+                }
                 self.current_marble.seek_forward(1);
             }
 
             self.current_marble.insert(marble);
-            self.current_marble.next();
         }
     }
 
