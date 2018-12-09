@@ -23,18 +23,19 @@ impl Circle {
         if self.marbles.is_empty() {
             self.marbles.push(marble);
         } else {
-            let pos = (self.current_marble + 2) % self.marbles.len();
             if marble % 23 == 0 {
                 let remove_index = if self.current_marble < 7 {
                     self.marbles.len() - (7 - self.current_marble)
                 } else {
-                    (self.current_marble - 7) % self.marbles.len()
+                    self.current_marble - 7
                 };
+
                 self.players[player] += marble;
                 let removed_val = self.marbles.remove(remove_index);
                 self.players[player] += removed_val;
                 self.current_marble = remove_index;
             } else {
+                let pos = (self.current_marble + 2) % self.marbles.len();
                 self.marbles.insert(pos, marble);
                 self.current_marble = pos;
             }
