@@ -1,43 +1,46 @@
 use crate::input_reader;
+use linked_list::{Cursor, LinkedList};
 
-struct Circle {
-    marbles: Vec<usize>,
+struct Circle<'a> {
     players: Vec<usize>,
     last_marble: usize,
-    current_marble: usize,
+    current_marble: Cursor<'a, usize>,
     player_count: usize,
 }
 
-impl Circle {
-    fn new(last_marble: usize, player_count: usize) -> Circle {
+impl<'a> Circle<'a> {
+    fn new(last_marble: usize, player_count: usize, list: &'a mut LinkedList<usize>) -> Circle<'a> {
         Circle {
-            marbles: Vec::with_capacity(last_marble),
             players: vec![0; player_count],
             last_marble,
-            current_marble: 0,
+            current_marble: list.cursor(),
             player_count,
         }
     }
 
     fn play(&mut self, marble: usize, player: usize) {
-        if self.marbles.is_empty() {
-            self.marbles.push(marble);
-        } else {
-            if marble % 23 == 0 {
-                let remove_index = if self.current_marble < 7 {
-                    self.marbles.len() - (7 - self.current_marble)
-                } else {
-                    self.current_marble - 7
-                };
-
-                self.players[player] += marble;
-                self.players[player] +=  self.marbles.remove(remove_index);
-                self.current_marble = remove_index;
-            } else {
-                let pos = (self.current_marble + 2) % self.marbles.len();
-                self.marbles.insert(pos, marble);
-                self.current_marble = pos;
+        if marble == 0 {
+            self.current_marble.insert(marble);
+            self.current_marble.next();
+        } else if marble % 23 == 0 {
+            for _ in 0..=7 {
+                if self.current_marble.peek_prev().is_none() {
+                    self.current_marble.seek_backward(1)
+                }
+                self.current_marble.seek_backward(1);
             }
+            self.players[player] += marble;
+            self.players[player] += self.current_marble.remove().unwrap();
+            self.current_marble.next();
+        } else {
+            if self.current_marble.peek_next().is_none() {
+                self.current_marble.seek_forward(2);
+            } else {
+                self.current_marble.seek_forward(1);
+            }
+
+            self.current_marble.insert(marble);
+            self.current_marble.next();
         }
     }
 
@@ -57,14 +60,31 @@ fn part1(input: &str) -> usize {
     let arr = data.split_whitespace().collect::<Vec<_>>();
     let players = arr[0].parse::<usize>().unwrap();
     let marbles = arr[6].parse::<usize>().unwrap();
+    let mut list = LinkedList::<usize>::new();
+    let result;
+    {
+        let mut game = Circle::new(marbles, players, &mut list);
+        game.play_all();
 
-    let mut game = Circle::new(marbles, players);
-    game.play_all();
-    game.winning_score()
+        result = game.winning_score();
+    }
+    result
 }
 
-fn part2(input: &str) {
-    let data = input_reader::read_all_lines(input);
+fn part2(input: &str) -> usize {
+    let data = input_reader::read_all(input);
+    let arr = data.split_whitespace().collect::<Vec<_>>();
+    let players = arr[0].parse::<usize>().unwrap();
+    let marbles = arr[6].parse::<usize>().unwrap();
+    let mut list = LinkedList::<usize>::new();
+    let result;
+    {
+        let mut game = Circle::new(100 * marbles, players, &mut list);
+        game.play_all();
+
+        result = game.winning_score();
+    }
+    result
 }
 
 pub fn day9() {
@@ -74,8 +94,8 @@ pub fn day9() {
     println!("\tReading from {}", input);
     println!("\t**Part One**");
     println!("\t\tWinning elfs score: {}", part1(&input));
-    //println!("\t**Part Two**");
-    //println!("\t\tTime needed with 5 workers: {}", part2(&input));
+    println!("\t**Part Two**");
+    println!("\t\tWinning elfs score: {}", part2(&input));
 }
 
 #[cfg(test)]
