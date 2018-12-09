@@ -31,8 +31,7 @@ impl Circle {
                 };
 
                 self.players[player] += marble;
-                let removed_val = self.marbles.remove(remove_index);
-                self.players[player] += removed_val;
+                self.players[player] +=  self.marbles.remove(remove_index);
                 self.current_marble = remove_index;
             } else {
                 let pos = (self.current_marble + 2) % self.marbles.len();
