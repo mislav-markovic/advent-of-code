@@ -74,7 +74,7 @@ fn part2(input: &str) -> usize {
     let marbles = arr[6].parse::<usize>().unwrap();
     let mut list = LinkedList::<usize>::new();
 
-    let mut game = Circle::new(100*marbles, players, &mut list);
+    let mut game = Circle::new(100 * marbles, players, &mut list);
     game.play_all();
     game.winning_score()
 }
