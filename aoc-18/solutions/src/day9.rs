@@ -61,14 +61,10 @@ fn part1(input: &str) -> usize {
     let players = arr[0].parse::<usize>().unwrap();
     let marbles = arr[6].parse::<usize>().unwrap();
     let mut list = LinkedList::<usize>::new();
-    let result;
-    {
-        let mut game = Circle::new(marbles, players, &mut list);
-        game.play_all();
 
-        result = game.winning_score();
-    }
-    result
+    let mut game = Circle::new(marbles, players, &mut list);
+    game.play_all();
+    game.winning_score()
 }
 
 fn part2(input: &str) -> usize {
@@ -77,14 +73,10 @@ fn part2(input: &str) -> usize {
     let players = arr[0].parse::<usize>().unwrap();
     let marbles = arr[6].parse::<usize>().unwrap();
     let mut list = LinkedList::<usize>::new();
-    let result;
-    {
-        let mut game = Circle::new(100 * marbles, players, &mut list);
-        game.play_all();
 
-        result = game.winning_score();
-    }
-    result
+    let mut game = Circle::new(100*marbles, players, &mut list);
+    game.play_all();
+    game.winning_score()
 }
 
 pub fn day9() {
