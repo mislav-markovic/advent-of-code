@@ -7,6 +7,24 @@ use std::str::FromStr;
 type PointT = (isize, isize);
 type MomentumT = (isize, isize);
 
+struct Sky {
+    stars: Vec<Star>
+}
+
+impl Sky {
+    fn new() -> Self {
+        Sky {stars: Vec::new()}
+    }
+
+    fn add_star(&mut self, star: Star) {
+        self.stars.push(star);
+    }
+
+    fn align(&mut self) {
+        self.stars.iter_mut().for_each(|s| s.step());
+    }
+}
+
 struct Star {
     position: PointT,
     momentum: MomentumT,
@@ -17,7 +35,7 @@ impl Star {
         Star { position, momentum }
     }
 
-    fn align(&mut self) {
+    fn step(&mut self) {
         let (x, y) = self.position;
         let (vel_x, vel_y) = self.momentum;
         self.position = (x + vel_x, y + vel_y);
@@ -48,7 +66,13 @@ impl FromStr for Star {
     }
 }
 
-fn part1(input: &str) {}
+fn part1(input: &str) {
+    let data = input_reader::read_all_lines(input);
+
+    let mut sky = Sky::new();
+
+    data.iter().for_each(|s| sky.add_star(s.parse::<Star>().unwrap()));
+}
 
 fn part2(input: &str) {
     let data = input_reader::read_all(input);
