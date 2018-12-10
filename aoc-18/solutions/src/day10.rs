@@ -1,4 +1,52 @@
 use crate::input_reader;
+use lazy_static::lazy_static;
+use regex::Regex;
+use std::num::ParseIntError;
+use std::str::FromStr;
+
+type PointT = (isize, isize);
+type MomentumT = (isize, isize);
+
+struct Star {
+    position: PointT,
+    momentum: MomentumT,
+}
+
+impl Star {
+    fn new(position: PointT, momentum: MomentumT) -> Star {
+        Star { position, momentum }
+    }
+
+    fn align(&mut self) {
+        let (x, y) = self.position;
+        let (vel_x, vel_y) = self.momentum;
+        self.position = (x + vel_x, y + vel_y);
+    }
+}
+
+impl FromStr for Star {
+    type Err = ParseIntError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        lazy_static! {
+            static ref RE: Regex = Regex::new(r"<(.+)>.+<(.+)>$").unwrap();
+        }
+
+        let data = RE.captures(s).unwrap();
+        let pos = data
+            .get(1)
+            .map_or(Vec::with_capacity(0), |m| m.as_str().split(',').collect::<Vec<_>>());
+        let vel = data
+            .get(2)
+            .map_or(Vec::with_capacity(0), |m| m.as_str().split(',').collect::<Vec<_>>());
+
+        let x = pos[0].parse::<isize>()?;
+        let y = pos[1].parse::<isize>()?;
+        let v_x = vel[0].parse::<isize>()?;
+        let v_y = vel[1].parse::<isize>()?;
+
+        Ok(Star::new((x, y), (v_x, v_y)))
+    }
+}
 
 fn part1(input: &str) {}
 
