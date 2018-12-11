@@ -22,13 +22,14 @@ impl FuelCell {
 
 struct Battery {
     dimension: DimensionT,
-    fuel_cells: HashMap<PointT, FuelCell>
+    fuel_cells: HashMap<PointT, FuelCell>,
+    power_levels: HashMap<(PointT, usize), isize> // (position, size) -> size
 }
 
 impl Battery {
     fn new_empty(dimension: DimensionT) -> Battery {
         let size = dimension.0*dimension.1;
-        Battery {dimension, fuel_cells: HashMap::with_capacity(size)}
+        Battery {dimension, fuel_cells: HashMap::with_capacity(size), power_levels: HashMap::with_capacity(size)}
     }
 
     fn new(dimension: DimensionT, serial_number: isize) -> Battery {
@@ -39,6 +40,9 @@ impl Battery {
                 bt.add_fuel_cell((x,y), serial_number);
             }
         }
+        bt.get_max_power(1);
+        bt.get_max_power(2);
+        bt.get_max_power(3);
         bt
     }
 
