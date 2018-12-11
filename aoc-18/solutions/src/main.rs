@@ -11,6 +11,7 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
+mod day11;
 mod input_reader;
 
 use elapsed::measure_time;
@@ -47,6 +48,7 @@ lazy_static! {
         m.insert("day8", day8::day8 as fn());
         m.insert("day9", day9::day9 as fn());
         m.insert("day10", day10::day10 as fn());
+        m.insert("day11", day11::day11 as fn());
         m
     };
 }
