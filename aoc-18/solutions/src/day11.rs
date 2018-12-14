@@ -1,4 +1,4 @@
-use crate::input_reader;
+use rayon::prelude::*;
 use std::collections::HashMap;
 
 type PointT = (isize, isize); // (x,y)
@@ -6,24 +6,24 @@ type DimensionT = (usize, usize); //(width, height)
 
 struct FuelCell {
     position: PointT,
-    serial_number: isize
+    serial_number: usize
 }
 
 impl FuelCell {
-    const fn new(position: PointT, serial_number: isize) -> FuelCell{
+    const fn new(position: PointT, serial_number: usize) -> FuelCell{
         FuelCell {position, serial_number}
     }
 
     const fn power_level(&self) -> isize {
         //(((rackID * Y + input) * rackID) / 100 % 10) - 5
-        (((self.position.0 + 10) * self.position.1 + self.serial_number) * (self.position.0 + 10) / 100 % 10) - 5
+        (((self.position.0 + 10) * self.position.1 + self.serial_number as isize) * (self.position.0 + 10) / 100 % 10) - 5
     }
 }
 
 struct Battery {
     dimension: DimensionT,
     fuel_cells: HashMap<PointT, FuelCell>,
-    power_levels: HashMap<(PointT, usize), isize> // (position, size) -> size
+    power_levels: HashMap<(PointT, usize), isize> // (position, size) -> power
 }
 
 impl Battery {
@@ -32,7 +32,7 @@ impl Battery {
         Battery {dimension, fuel_cells: HashMap::with_capacity(size), power_levels: HashMap::with_capacity(size)}
     }
 
-    fn new(dimension: DimensionT, serial_number: isize) -> Battery {
+    fn new(dimension: DimensionT, serial_number: usize) -> Battery {
         let mut bt = Battery::new_empty(dimension);
 
         for x in 0..dimension.0 as isize {
@@ -46,11 +46,11 @@ impl Battery {
         bt
     }
 
-    fn add_fuel_cell(&mut self, position: PointT, serial_number: isize) {
+    fn add_fuel_cell(&mut self, position: PointT, serial_number: usize) {
         self.fuel_cells.insert(position, FuelCell::new(position, serial_number));
     }
 
-    fn get_max_power(&mut self, square: usize) -> (PointT, isize) {
+    fn get_max_power(&self, square: usize) -> (PointT, isize) {
         let mut max = isize::min_value();
         let mut max_cell: PointT = (0,0);
 
@@ -80,19 +80,20 @@ impl Battery {
     }
 }
 
-fn part1(input: isize) -> PointT{
-    let mut bt = Battery::new((300, 300), input);
+fn part1(input: usize) -> PointT{
+    let bt = Battery::new((300, 300), input);
     bt.get_max_power(3).0
 }
 
-fn part2(input: isize) -> (PointT, usize) {
-    let mut bt = Battery::new((300, 300), input);
-    let ((pos, _power), size) = (1..=300).map(|size| (bt.get_max_power(size), size)).max_by_key(|&((_pos, pow), _size)| pow).unwrap();
-    (pos, size)
+fn part2(input: usize) -> (PointT, usize) {
+    let bt = Battery::new((300, 300), input);
+    let v = (1..=300).collect::<Vec<usize>>();
+    let ((pos, _power), size) = v.par_iter().map(|size| (bt.get_max_power(*size), size)).max_by_key(|&((_pos, pow), _size)| pow).unwrap();
+    (pos, *size)
 }
 
 pub fn day11() {
-    const INPUT: isize = 8444;
+    const INPUT: usize = 8444;
 
     println!("***Day Eleven***");
     println!("\tInput is {}", INPUT);
