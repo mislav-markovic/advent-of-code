@@ -1,9 +1,12 @@
-pub fn read_lines_from_input(path: &str) -> Result<Vec<String>, ReaderError> {
+pub fn read_sparated_values_from_input(
+    path: &str,
+    separator: &str,
+) -> Result<Vec<String>, ReaderError> {
     use std::fs;
 
     let contents = fs::read_to_string(path)
         .map_err(|_| ReaderError {})
-        .map(|text| text.lines().map(|s| String::from(s)).collect());
+        .map(|text| text.split(separator).map(|s| String::from(s)).collect());
 
     contents
 }

@@ -46,7 +46,7 @@ pub struct Day1Runner {
 impl Day1Runner {
     pub fn with_input_path(path: &str, part: Parts) -> Self {
         use crate::input_reader;
-        let input = input_reader::read_lines_from_input(path)
+        let input = input_reader::read_sparated_values_from_input(path, "\r\n")
             .expect(&format!("Failed to load input for day1 with path {}", path));
         let modules = Modules::parsed(
             input

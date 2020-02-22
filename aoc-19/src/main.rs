@@ -1,10 +1,16 @@
 mod days;
 mod input_reader;
 use days::{runner_factory, Days, Parts};
+use std::env;
 
 fn main() {
-    println!("Hello, world!");
-    let (day, part, path) = read_user_input();
+    let args: Vec<String> = env::args().collect();
+    let (day, part, path) = if args.len() < 4 {
+        read_user_input()
+    } else {
+        (args[1], args[2], args[3])
+    };
+
     let user_specified_day = str_to_day_enum(day.as_str()).unwrap();
     let user_specified_part = str_to_part(part.as_str()).unwrap();
 
