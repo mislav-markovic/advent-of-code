@@ -8,7 +8,7 @@ fn main() {
     let (day, part, path) = if args.len() < 4 {
         read_user_input()
     } else {
-        (args[1], args[2], args[3])
+        (args[1].clone(), args[2].clone(), args[3].clone())
     };
 
     let user_specified_day = str_to_day_enum(day.as_str()).unwrap();
@@ -23,6 +23,7 @@ fn main() {
 fn str_to_day_enum(name: &str) -> Option<Days> {
     match name.trim().to_lowercase().as_str() {
         "day1" => Some(Days::Day1),
+        "day2" => Some(Days::Day2),
         _ => None,
     }
 }

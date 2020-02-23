@@ -43,8 +43,4 @@ impl ParseError {
     pub fn new_copy(message: &str, line: &str) -> Self {
         Self::new(String::from(message), String::from(line))
     }
-
-    pub fn from(error: &Self) -> Self {
-        Self::new_copy(&error.message, &error.line)
-    }
 }
