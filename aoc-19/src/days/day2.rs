@@ -21,6 +21,7 @@ impl Intcode {
             position: 0,
         }
     }
+
     fn parsed(text: &[&str]) -> Self {
         let result = Self::parse_all(text)
             .into_iter()

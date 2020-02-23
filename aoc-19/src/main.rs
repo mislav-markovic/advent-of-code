@@ -24,6 +24,7 @@ fn str_to_day_enum(name: &str) -> Option<Days> {
     match name.trim().to_lowercase().as_str() {
         "day1" => Some(Days::Day1),
         "day2" => Some(Days::Day2),
+        "day3" => Some(Days::Day3),
         _ => None,
     }
 }
