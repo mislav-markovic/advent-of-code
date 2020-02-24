@@ -26,6 +26,7 @@ fn str_to_day_enum(name: &str) -> Option<Days> {
         "day2" => Some(Days::Day2),
         "day3" => Some(Days::Day3),
         "day4" => Some(Days::Day4),
+        "day5" => Some(Days::Day5),
         _ => None,
     }
 }
