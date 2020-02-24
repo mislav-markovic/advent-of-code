@@ -1,3 +1,7 @@
+
+#![feature(drain_filter)]
+
+
 mod days;
 mod input_reader;
 use days::{runner_factory, Days, Parts};
@@ -27,6 +31,7 @@ fn str_to_day_enum(name: &str) -> Option<Days> {
         "day3" => Some(Days::Day3),
         "day4" => Some(Days::Day4),
         "day5" => Some(Days::Day5),
+        "day6" => Some(Days::Day6),
         _ => None,
     }
 }
