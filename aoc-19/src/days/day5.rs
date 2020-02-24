@@ -69,7 +69,6 @@ impl ParameterMode {
     }
 }
 
-#[derive(Debug)]
 struct Parameter {
     mode: ParameterMode,
     index: usize,
@@ -86,7 +85,6 @@ impl Parameter {
     }
 }
 
-#[derive(Debug)]
 struct Instruction {
     opcode: OpCode,
     parameters: Vec<Parameter>,
@@ -109,17 +107,20 @@ impl Instruction {
     }
 }
 
-struct Intcode {
+#[derive(Clone)]
+pub struct Intcode {
     instructions: Vec<isize>,
     instruction_pointer: usize,
     inputs: VecDeque<isize>,
-    outputs: Vec<isize>,
+    pub outputs: Vec<isize>,
     diagnostic_code: Option<isize>,
     pointer_jumped: bool,
+    pause_on_output: bool,
+    halted: bool,
 }
 
 impl Intcode {
-    fn new(instructions: &[isize], inputs: &[isize]) -> Self {
+    fn new(instructions: &[isize], inputs: &[isize], pause_on_output: bool) -> Self {
         let instructions = instructions.iter().map(|&x| x).collect::<Vec<_>>();
         let inputs = inputs.iter().map(|&x| x).collect::<VecDeque<_>>();
         Intcode {
@@ -129,6 +130,8 @@ impl Intcode {
             outputs: vec![],
             diagnostic_code: None,
             pointer_jumped: false,
+            pause_on_output,
+            halted: false,
         }
     }
 
@@ -171,13 +174,16 @@ impl Intcode {
 
     fn execute_instruction(&mut self, instruction: &Instruction) -> ContinueExecution {
         match instruction.opcode {
-            OpCode::Halt => false.into(),
+            OpCode::Halt => {
+                self.halted = true;
+                false.into()
+            }
             OpCode::Output => {
                 let param = instruction.parameters.first().unwrap();
                 let val = self.parameter_value(param);
                 self.outputs.push(val);
                 self.diagnostic_code = Some(val);
-                true.into()
+                (!self.pause_on_output).into()
             }
             OpCode::Input => {
                 self.diagnostic_code = None;
@@ -260,13 +266,28 @@ impl Intcode {
         }
     }
 
-    fn run_program(&mut self) {
-        let mut insctruction = self.current_instruction();
+    pub fn run_program(&mut self) -> Option<isize> {
+        if self.halted {
+            None
+        } else {
+            let mut insctruction = self.current_instruction();
 
-        while self.execute_instruction(&insctruction).0 {
-            self.advance_to_next_instruction(&insctruction);
-            insctruction = self.current_instruction();
+            while self.execute_instruction(&insctruction).0 {
+                self.advance_to_next_instruction(&insctruction);
+                insctruction = self.current_instruction();
+            }
+            if !self.halted {
+                self.advance_to_next_instruction(&insctruction);
+            }
+            self.outputs.last().map_or(None, |&x| Some(x))
         }
+    }
+
+    pub fn add_inputs(&mut self, inputs: &[isize]) {
+        inputs.iter().for_each(|&x| self.inputs.push_back(x))
+    }
+    pub fn is_halted(&self) -> bool {
+        self.halted
     }
 
     fn advance_to_next_instruction(&mut self, current_instruction: &Instruction) {
@@ -276,12 +297,16 @@ impl Intcode {
         self.pointer_jumped = false;
     }
 
-    fn parsed(text: &str, inputs: &[isize]) -> Self {
+    pub fn parsed(text: &str, inputs: &[isize], pause_on_output: bool) -> Self {
         let result: Vec<isize> = text
             .split(",")
             .map(|x| x.parse::<isize>().expect("Not valid intcode"))
             .collect();
-        Self::new(result.as_ref(), inputs)
+        Self::new(result.as_ref(), inputs, pause_on_output)
+    }
+
+    pub fn set_inputs(&mut self, inputs: &[isize]) {
+        self.inputs = inputs.iter().map(|x| *x).collect();
     }
 }
 
@@ -309,7 +334,11 @@ impl Day5Runner {
 
     fn load(&self, inputs: &[isize]) -> Intcode {
         let text = crate::input_reader::read_sparated_values_from_input(self.path.as_ref(), "\r\n");
-        Intcode::parsed(&text.expect("Could not read instructions")[0], inputs)
+        Intcode::parsed(
+            &text.expect("Could not read instructions")[0],
+            inputs,
+            false,
+        )
     }
 }
 

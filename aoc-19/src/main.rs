@@ -1,6 +1,5 @@
-
 #![feature(drain_filter)]
-
+#![feature(assoc_int_consts)]
 
 mod days;
 mod input_reader;
@@ -32,6 +31,7 @@ fn str_to_day_enum(name: &str) -> Option<Days> {
         "day4" => Some(Days::Day4),
         "day5" => Some(Days::Day5),
         "day6" => Some(Days::Day6),
+        "day7" => Some(Days::Day7),
         _ => None,
     }
 }

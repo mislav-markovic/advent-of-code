@@ -4,6 +4,7 @@ pub mod day3;
 pub mod day4;
 pub mod day5;
 pub mod day6;
+pub mod day7;
 
 pub trait Runner {
     fn run(&self) -> String;
@@ -16,6 +17,7 @@ pub fn runner_factory(day: &Days, part: &Parts, input_path: &str) -> Box<dyn Run
     use day4::Day4Runner;
     use day5::Day5Runner;
     use day6::Day6Runner;
+    use day7::Day7Runner;
 
     match day {
         Days::Day1 => match part {
@@ -42,6 +44,10 @@ pub fn runner_factory(day: &Days, part: &Parts, input_path: &str) -> Box<dyn Run
             Parts::Part1 => Box::new(Day6Runner::with_input_path(input_path, part.clone())),
             Parts::Part2 => Box::new(Day6Runner::with_input_path(input_path, part.clone())),
         },
+        Days::Day7 => match part {
+            Parts::Part1 => Box::new(Day7Runner::with_input_path(input_path, part.clone())),
+            Parts::Part2 => Box::new(Day7Runner::with_input_path(input_path, part.clone())),
+        },
     }
 }
 
@@ -52,6 +58,7 @@ pub enum Days {
     Day4,
     Day5,
     Day6,
+    Day7,
 }
 
 #[derive(Clone)]
