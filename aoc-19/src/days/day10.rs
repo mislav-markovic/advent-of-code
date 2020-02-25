@@ -68,10 +68,19 @@ impl Point {
     }
 
     fn angle_from_origin(&self, origin: &Point) -> f64 {
-        let y_r: f64 = ((origin.y as isize - self.y as isize) as f64) * -1f64;
-        let x_r: f64 = (origin.x as isize - self.x as isize) as f64;
+        use float_cmp::*;
+        let y_r: f64 = ((self.y as isize - origin.y as isize) * -1isize) as f64;
+        let x_r: f64 = (self.x as isize - origin.x as isize) as f64;
 
-        (y_r.atan2(x_r) + std::f64::consts::FRAC_PI_2) * -1f64
+        let result = y_r.atan2(x_r) - std::f64::consts::FRAC_PI_2;
+
+        if result.approx_eq(0f64, (0.00000003, 2)) {
+            result
+        } else if result.is_sign_negative() {
+            result.abs()
+        } else {
+            2f64 * std::f64::consts::PI - result
+        }
     }
 }
 
@@ -132,6 +141,7 @@ impl Map {
     }
 
     fn destroy_n(&mut self, laser_location: &Point, n: usize) -> Point {
+        use ordered_float::*;
         let mut destroyed: Vec<Point> = vec![];
 
         while destroyed.len() < n {
@@ -144,18 +154,13 @@ impl Map {
             self.asteroids.drain_filter(|x| for_destruction.contains(x));
 
             for_destruction.sort_by(|a, b| {
-                a.angle_from_origin(laser_location)
-                    .partial_cmp(&b.angle_from_origin(laser_location))
-                    .unwrap()
+                OrderedFloat(a.angle_from_origin(laser_location))
+                    .cmp(&OrderedFloat(b.angle_from_origin(laser_location)))
             });
             destroyed.append(&mut for_destruction);
         }
 
-        destroyed
-            .iter()
-            .enumerate()
-            .for_each(|(i, p)| println!("{}: {:?}", i + 1, p));
-        destroyed.into_iter().nth(n).unwrap()
+        destroyed.into_iter().nth(n - 1).unwrap()
     }
 }
 
