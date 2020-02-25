@@ -19,6 +19,7 @@ enum OpCode {
     JumpIfFalse,
     LessThan,
     Equals,
+    RelativeBaseOffset,
 }
 
 impl OpCode {
@@ -34,6 +35,7 @@ impl OpCode {
             OpCode::JumpIfFalse => (2, false),
             OpCode::LessThan => (2, true),
             OpCode::Equals => (2, true),
+            OpCode::RelativeBaseOffset => (1, false),
         }
     }
 
@@ -47,6 +49,7 @@ impl OpCode {
             6 => Some(Self::JumpIfFalse),
             7 => Some(Self::LessThan),
             8 => Some(Self::Equals),
+            9 => Some(Self::RelativeBaseOffset),
             99 => Some(Self::Halt),
             _ => None,
         }
@@ -57,11 +60,13 @@ impl OpCode {
 enum ParameterMode {
     Position,
     Immediate,
+    Relative,
 }
 
 impl ParameterMode {
     fn from_value(value: usize) -> Option<Self> {
         match value {
+            2 => Some(Self::Relative),
             1 => Some(Self::Immediate),
             0 => Some(Self::Position),
             _ => None,
@@ -117,6 +122,7 @@ pub struct Intcode {
     pointer_jumped: bool,
     pause_on_output: bool,
     halted: bool,
+    relative_base: isize,
 }
 
 impl Intcode {
@@ -132,6 +138,7 @@ impl Intcode {
             pointer_jumped: false,
             pause_on_output,
             halted: false,
+            relative_base: 0,
         }
     }
 
@@ -150,8 +157,8 @@ impl Intcode {
         }
 
         let store = if param_count.1 {
-            Some(Parameter::new(
-                ParameterMode::Immediate,
+            Some(Parameter::from_value(
+                meta_value % 10,
                 self.instruction_pointer + param_count.0 + 1,
             ))
         } else {
@@ -163,12 +170,32 @@ impl Intcode {
 
     fn parameter_value(&self, param: &Parameter) -> isize {
         match param.mode {
-            ParameterMode::Immediate => self.instructions[param.index],
-            ParameterMode::Position => self.instructions[self.instructions[param.index] as usize],
+            ParameterMode::Immediate => self.at(param.index),
+            ParameterMode::Position => self.at(self.at(param.index) as usize),
+            ParameterMode::Relative => {
+                self.at((self.relative_base + self.at(param.index)) as usize)
+            }
         }
     }
 
-    fn store(&mut self, location: usize, value: isize) {
+    fn at(&self, index: usize) -> isize {
+        *self.instructions.get(index).unwrap_or(&0)
+    }
+
+    fn store(&mut self, store_param: &Parameter, value: isize) {
+        let location = match store_param.mode {
+            ParameterMode::Position => self.at(store_param.index) as usize,
+            ParameterMode::Relative => (self.relative_base + self.at(store_param.index)) as usize,
+            ParameterMode::Immediate => {
+                panic!("Immediate paramter mode not allowed for store operation")
+            }
+        };
+
+        if location >= self.instructions.len() {
+            let to_add = location - self.instructions.len() + 1;
+            let mut slice: Vec<isize> = (0..to_add).map(|_| 0).collect();
+            self.instructions.append(&mut slice);
+        }
         self.instructions[location] = value;
     }
 
@@ -187,30 +214,30 @@ impl Intcode {
             }
             OpCode::Input => {
                 self.diagnostic_code = None;
-                let store_location =
-                    self.parameter_value(instruction.store.as_ref().unwrap()) as usize;
                 let value = self.inputs.pop_front().unwrap();
-                self.store(store_location, value);
+                self.store(instruction.store.as_ref().unwrap(), value);
                 true.into()
             }
             OpCode::Add => {
                 self.diagnostic_code = None;
                 let first_operand = self.parameter_value(&instruction.parameters[0]);
                 let second_operand = self.parameter_value(&instruction.parameters[1]);
-                let store_location =
-                    self.parameter_value(instruction.store.as_ref().unwrap()) as usize;
 
-                self.store(store_location, first_operand + second_operand);
+                self.store(
+                    instruction.store.as_ref().unwrap(),
+                    first_operand + second_operand,
+                );
                 true.into()
             }
             OpCode::Multiply => {
                 self.diagnostic_code = None;
                 let first_operand = self.parameter_value(&instruction.parameters[0]);
                 let second_operand = self.parameter_value(&instruction.parameters[1]);
-                let store_location =
-                    self.parameter_value(instruction.store.as_ref().unwrap()) as usize;
 
-                self.store(store_location, first_operand * second_operand);
+                self.store(
+                    instruction.store.as_ref().unwrap(),
+                    first_operand * second_operand,
+                );
                 true.into()
             }
             OpCode::JumpIfTrue => {
@@ -239,13 +266,11 @@ impl Intcode {
                 self.diagnostic_code = None;
                 let first_operand = self.parameter_value(&instruction.parameters[0]);
                 let second_operand = self.parameter_value(&instruction.parameters[1]);
-                let store_location =
-                    self.parameter_value(instruction.store.as_ref().unwrap()) as usize;
 
                 if first_operand == second_operand {
-                    self.store(store_location, 1);
+                    self.store(instruction.store.as_ref().unwrap(), 1);
                 } else {
-                    self.store(store_location, 0);
+                    self.store(instruction.store.as_ref().unwrap(), 0);
                 }
                 true.into()
             }
@@ -253,14 +278,19 @@ impl Intcode {
                 self.diagnostic_code = None;
                 let first_operand = self.parameter_value(&instruction.parameters[0]);
                 let second_operand = self.parameter_value(&instruction.parameters[1]);
-                let store_location =
-                    self.parameter_value(instruction.store.as_ref().unwrap()) as usize;
 
                 if first_operand < second_operand {
-                    self.store(store_location, 1);
+                    self.store(instruction.store.as_ref().unwrap(), 1);
                 } else {
-                    self.store(store_location, 0);
+                    self.store(instruction.store.as_ref().unwrap(), 0);
                 }
+                true.into()
+            }
+            OpCode::RelativeBaseOffset => {
+                self.diagnostic_code = None;
+                let first_operand = self.parameter_value(&instruction.parameters[0]);
+
+                self.relative_base += first_operand;
                 true.into()
             }
         }
