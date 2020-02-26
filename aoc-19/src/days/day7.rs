@@ -44,7 +44,8 @@ impl Amplifiers {
                 }
 
                 amp.add_inputs(&[last_output]);
-                last_output = amp.run_program().unwrap();
+                amp.run_program();
+                last_output = *amp.outputs.last().unwrap();
             }
         }
         *amps.last().unwrap().outputs.last().unwrap()

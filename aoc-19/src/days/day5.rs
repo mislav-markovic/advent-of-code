@@ -1,11 +1,10 @@
 use crate::days::*;
 use std::collections::VecDeque;
-struct ContinueExecution(pub bool);
-
-impl From<bool> for ContinueExecution {
-    fn from(continue_: bool) -> Self {
-        Self(continue_)
-    }
+enum ExecutionResult {
+    Halt,
+    Output,
+    Input,
+    Continue,
 }
 
 #[derive(Debug)]
@@ -199,24 +198,31 @@ impl Intcode {
         self.instructions[location] = value;
     }
 
-    fn execute_instruction(&mut self, instruction: &Instruction) -> ContinueExecution {
+    fn execute_instruction(&mut self, instruction: &Instruction) -> ExecutionResult {
         match instruction.opcode {
             OpCode::Halt => {
                 self.halted = true;
-                false.into()
+                ExecutionResult::Halt
             }
             OpCode::Output => {
                 let param = instruction.parameters.first().unwrap();
                 let val = self.parameter_value(param);
                 self.outputs.push(val);
                 self.diagnostic_code = Some(val);
-                (!self.pause_on_output).into()
+                if self.pause_on_output {
+                    ExecutionResult::Output
+                } else {
+                    ExecutionResult::Continue
+                }
             }
             OpCode::Input => {
                 self.diagnostic_code = None;
-                let value = self.inputs.pop_front().unwrap();
-                self.store(instruction.store.as_ref().unwrap(), value);
-                true.into()
+                if let Some(value) = self.inputs.pop_front() {
+                    self.store(instruction.store.as_ref().unwrap(), value);
+                    ExecutionResult::Continue
+                } else {
+                    ExecutionResult::Input
+                }
             }
             OpCode::Add => {
                 self.diagnostic_code = None;
@@ -227,7 +233,7 @@ impl Intcode {
                     instruction.store.as_ref().unwrap(),
                     first_operand + second_operand,
                 );
-                true.into()
+                ExecutionResult::Continue
             }
             OpCode::Multiply => {
                 self.diagnostic_code = None;
@@ -238,7 +244,7 @@ impl Intcode {
                     instruction.store.as_ref().unwrap(),
                     first_operand * second_operand,
                 );
-                true.into()
+                ExecutionResult::Continue
             }
             OpCode::JumpIfTrue => {
                 self.diagnostic_code = None;
@@ -249,7 +255,7 @@ impl Intcode {
                     self.instruction_pointer = second_operand as usize;
                     self.pointer_jumped = true;
                 }
-                true.into()
+                ExecutionResult::Continue
             }
             OpCode::JumpIfFalse => {
                 self.diagnostic_code = None;
@@ -260,7 +266,7 @@ impl Intcode {
                     self.instruction_pointer = second_operand as usize;
                     self.pointer_jumped = true;
                 }
-                true.into()
+                ExecutionResult::Continue
             }
             OpCode::Equals => {
                 self.diagnostic_code = None;
@@ -272,7 +278,7 @@ impl Intcode {
                 } else {
                     self.store(instruction.store.as_ref().unwrap(), 0);
                 }
-                true.into()
+                ExecutionResult::Continue
             }
             OpCode::LessThan => {
                 self.diagnostic_code = None;
@@ -284,37 +290,46 @@ impl Intcode {
                 } else {
                     self.store(instruction.store.as_ref().unwrap(), 0);
                 }
-                true.into()
+                ExecutionResult::Continue
             }
             OpCode::RelativeBaseOffset => {
                 self.diagnostic_code = None;
                 let first_operand = self.parameter_value(&instruction.parameters[0]);
 
                 self.relative_base += first_operand;
-                true.into()
+                ExecutionResult::Continue
             }
         }
     }
 
-    pub fn run_program(&mut self) -> Option<isize> {
+    pub fn run_program(&mut self) -> ProgramResult {
         if self.halted {
-            None
+            ProgramResult::Halt
         } else {
-            let mut insctruction = self.current_instruction();
-
-            while self.execute_instruction(&insctruction).0 {
-                self.advance_to_next_instruction(&insctruction);
-                insctruction = self.current_instruction();
+            loop {
+                let instruction = self.current_instruction();
+                match self.execute_instruction(&instruction) {
+                    ExecutionResult::Halt => break ProgramResult::Halt,
+                    ExecutionResult::Continue => {
+                        self.advance_to_next_instruction(&instruction);
+                    }
+                    ExecutionResult::Output => {
+                        self.advance_to_next_instruction(&instruction);
+                        break self
+                            .outputs
+                            .last()
+                            .map_or(ProgramResult::OutputPause(None), |&x| {
+                                ProgramResult::OutputPause(Some(x))
+                            });
+                    }
+                    ExecutionResult::Input => break ProgramResult::InputPause,
+                }
             }
-            if !self.halted {
-                self.advance_to_next_instruction(&insctruction);
-            }
-            self.outputs.last().map_or(None, |&x| Some(x))
         }
     }
 
     pub fn add_inputs(&mut self, inputs: &[isize]) {
-        inputs.iter().for_each(|&x| self.inputs.push_back(x))
+        self.inputs.extend(inputs);
     }
     pub fn is_halted(&self) -> bool {
         self.halted
@@ -338,6 +353,12 @@ impl Intcode {
     pub fn set_inputs(&mut self, inputs: &[isize]) {
         self.inputs = inputs.iter().map(|x| *x).collect();
     }
+}
+
+pub enum ProgramResult {
+    InputPause,
+    OutputPause(Option<isize>),
+    Halt,
 }
 
 pub struct Day5Runner {
