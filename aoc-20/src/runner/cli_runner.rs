@@ -13,7 +13,16 @@ impl CliRunner {
     CliBuilder::new()
   }
 
-  pub fn help(&self) -> String {}
+  pub fn help(&self) -> String {
+    let mut string_builder = String::new();
+
+    for arg in self.args.iter() {
+      string_builder.push_str(arg.option.help(SHORT_SWITCH, LONG_SWITCH).as_ref());
+      string_builder.push('\n');
+    }
+
+    string_builder
+  }
 
   fn new(args: String, options: Vec<CliOption>) -> CliRunner {}
 }
@@ -25,8 +34,10 @@ pub struct CliBuilder {
 
 impl CliBuilder {
   fn new() -> Self {
-    Self { options: Vec::new(),
-           arg_line: String::new() }
+    Self {
+      options: Vec::new(),
+      arg_line: String::new(),
+    }
   }
 
   pub fn register_option(mut self, option: CliOption) -> CliBuilder {
