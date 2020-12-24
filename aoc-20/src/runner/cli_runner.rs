@@ -1,13 +1,21 @@
-use super::argument_parser::CliOption;
+use super::argument_parser::{CliArgument, CliOption};
+
+const SHORT_SWITCH: &str = "-";
+const LONG_SWITCH: &str = "--";
+
 pub struct CliRunner {
-  options: Vec<CliOption>,
-  args: String,
+  args: Vec<CliArgument>,
+  original_argument_line: String,
 }
 
 impl CliRunner {
   pub fn from_builder() -> CliBuilder {
     CliBuilder::new()
   }
+
+  pub fn help(&self) -> String {}
+
+  fn new(args: String, options: Vec<CliOption>) -> CliRunner {}
 }
 
 pub struct CliBuilder {
@@ -17,10 +25,8 @@ pub struct CliBuilder {
 
 impl CliBuilder {
   fn new() -> Self {
-    Self {
-      options: Vec::new(),
-      arg_line: String::new(),
-    }
+    Self { options: Vec::new(),
+           arg_line: String::new() }
   }
 
   pub fn register_option(mut self, option: CliOption) -> CliBuilder {
@@ -34,9 +40,6 @@ impl CliBuilder {
   }
 
   pub fn make_runner(self) -> CliRunner {
-    CliRunner {
-      options: self.options,
-      args: self.arg_line,
-    }
+    CliRunner::new(self.arg_line, self.options)
   }
 }
