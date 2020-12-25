@@ -19,6 +19,7 @@ fn is_valid_password(record: &DatabaseRecord) -> bool {
 mod test {
   use super::*;
 
+  #[test]
   fn valid_password_detected() {
     let input = "2-9 c: ccccccccc";
     let record = input.parse::<DatabaseRecord>().unwrap();
@@ -26,6 +27,7 @@ mod test {
     assert!(is_valid_password(&record));
   }
 
+  #[test]
   fn invalid_password_detected() {
     let input = "1-3 b: cdefg";
     let record = input.parse::<DatabaseRecord>().unwrap();
