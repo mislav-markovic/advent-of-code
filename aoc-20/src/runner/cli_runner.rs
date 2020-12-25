@@ -24,7 +24,12 @@ impl CliRunner {
     string_builder
   }
 
-  fn new(args: String, options: Vec<CliOption>) -> CliRunner {}
+  fn new(args: String, options: Vec<CliOption>) -> CliRunner {
+    CliRunner {
+      args: Vec::new(),
+      original_argument_line: args,
+    }
+  }
 }
 
 pub struct CliBuilder {
