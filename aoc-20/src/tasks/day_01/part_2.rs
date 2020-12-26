@@ -1,12 +1,5 @@
-use input::parse_input;
-
-use crate::common::file_reader as input;
-
-pub fn solve(input_root: &str) -> u64 {
-  let input_path = format!("{}/day_01.input.txt", input_root);
-  println!("Reading from input: '{}'", &input_path);
-  let expenses = parse_input::<u64>(&input_path, "\r\n");
-  let (num1, num2, num3) = find_sum(2020u64, &expenses).unwrap();
+pub(super) fn solve(expenses: &[u64]) -> u64 {
+  let (num1, num2, num3) = find_sum(2020u64, expenses).unwrap();
   num1 * num2 * num3
 }
 
