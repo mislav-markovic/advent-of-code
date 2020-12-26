@@ -35,20 +35,23 @@ struct BoardingPass {
 
 impl BoardingPass {
   pub fn seat(&self) -> Seat {
-    let column_range = self.column_instructions.iter().fold(
-      Range::new(0, 2usize.pow(self.column_instructions.len() as u32) - 1),
-      |acc, elem| acc.split(elem),
-    );
+    let column_range_init = Range::new(0, 2usize.pow(self.column_instructions.len() as u32) - 1);
+    let column_count = column_range_init.len();
+    let column_range = self
+      .column_instructions
+      .iter()
+      .fold(column_range_init, |acc, elem| acc.split(elem));
 
-    let row_range = self.row_instructions.iter().fold(
-      Range::new(0, 2usize.pow(self.row_instructions.len() as u32) - 1),
-      |acc, elem| acc.split(elem),
-    );
+    let row_range_init = Range::new(0, 2usize.pow(self.row_instructions.len() as u32) - 1);
+    let row_range = self
+      .row_instructions
+      .iter()
+      .fold(row_range_init, |acc, elem| acc.split(elem));
 
     let column = column_range.collapse().unwrap();
     let row = row_range.collapse().unwrap();
 
-    Seat::new(column, row, self.column_instructions.len())
+    Seat::new(column, row, column_count)
   }
 }
 
@@ -123,8 +126,16 @@ impl Range {
     }
   }
 
+  fn len(&self) -> usize {
+    Self::from_to_len(self.start, self.end)
+  }
+
+  fn from_to_len(start: usize, end: usize) -> usize {
+    end - start + 1usize // range is inclusive
+  }
+
   fn get_half_point(start: usize, end: usize, inst: &Instruction) -> usize {
-    let elem_count = (start..=end).count();
+    let elem_count = Self::from_to_len(start, end);
     let half_point = end - elem_count / 2usize;
     match inst {
       Instruction::Lower => half_point,
@@ -149,7 +160,7 @@ pub fn solve_part_2(input_root: &str) {
   let data = get_data(&path);
   let missing_seat_id = part_2::get_missing_seat_id(&data);
 
-  println!("(Day5, Part 2) Missing seat id {}", missing_seat_id);
+  println!("(Day 5, Part 2) Missing seat id {}", missing_seat_id);
 }
 
 fn get_data(path: &str) -> Vec<BoardingPass> {
