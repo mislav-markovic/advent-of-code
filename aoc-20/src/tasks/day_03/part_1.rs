@@ -1,4 +1,4 @@
-use super::{advance_position, Map, Position, Step};
+use super::{Map, Position, Step};
 
 pub(super) fn number_of_trees_on_slope(
   map: &Map,

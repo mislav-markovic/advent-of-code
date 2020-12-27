@@ -59,10 +59,6 @@ impl Map {
 
     self.rows[real_y].locations[real_x].is_open
   }
-
-  pub fn height(&self) -> usize {
-    self.height
-  }
 }
 
 struct Step {
