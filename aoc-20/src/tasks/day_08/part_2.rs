@@ -14,7 +14,7 @@ pub(super) fn accumulator_of_terminating_version(instructions: Vec<Instr>) -> i3
 
   for index in indexes {
     let mut version = instructions.to_vec();
-    version[index] = flip_jmp_an_nop(&version[index]);
+    version[index] = flip_jmp_and_nop(&version[index]);
 
     if let Some(term_acc) = execute_until_termination(version) {
       return term_acc;
@@ -24,7 +24,7 @@ pub(super) fn accumulator_of_terminating_version(instructions: Vec<Instr>) -> i3
   panic!("Terminating version of program not found!");
 }
 
-fn flip_jmp_an_nop(instr: &Instr) -> Instr {
+fn flip_jmp_and_nop(instr: &Instr) -> Instr {
   match instr {
     Instr::Acc(_) => panic!("Cant flip acc instr"),
     Instr::Jmp(offset) => Instr::Nop(*offset),
