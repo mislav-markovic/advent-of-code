@@ -44,7 +44,12 @@ pub fn solve_part_1(input_root: &str) {
 }
 
 pub fn solve_part_2(input_root: &str) {
-  println!("(Day 9, Part 2) Not Implemented")
+  let data = get_data(input_root);
+  let preamble_size = 25usize;
+  let first_invalid =
+    part_1::find_first_invalid_number(&data[..preamble_size], &data[preamble_size..]);
+  let weakness = part_2::get_encription_weakness(first_invalid, data.as_slice());
+  println!("(Day 9, Part 2) Encoder weakness is {}", weakness);
 }
 
 fn get_data(root: &str) -> Vec<usize> {
