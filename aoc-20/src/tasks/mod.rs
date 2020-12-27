@@ -34,7 +34,7 @@ pub fn dispatch(input_root: &str, day: &Day, part: &Part) {
     },
     Day::Day07 => match part {
       Part::First => day_07::solve_part_1(input_root),
-      Part::Second => day_06::solve_part_2(input_root),
+      Part::Second => day_07::solve_part_2(input_root),
     },
   }
 }

@@ -69,7 +69,14 @@ pub fn solve_part_1(input_root: &str) {
   );
 }
 pub fn solve_part_2(input_root: &str) {
-  println!("(Day 7, Part 2) Not Implemented");
+  let target_bag = "shiny gold";
+  let bags = get_data(input_root);
+
+  let result = part_2::how_many_bags_must_target_contain(target_bag, &bags);
+  println!(
+    "(Day 7, Part 2) {} must contain {} other bags",
+    target_bag, result
+  );
 }
 
 fn get_data(root: &str) -> Vec<Bag> {
