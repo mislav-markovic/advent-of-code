@@ -1,11 +1,13 @@
 #![feature(iterator_fold_self)]
+#![feature(str_split_once)]
 
 mod common;
 mod runner;
 mod tasks;
 
+use tasks::{Day, Part};
 fn main() {
   let input_root = "E:/Programming Projects/advent-of-code/aoc-20/input";
-  tasks::day_06::solve_part_1(input_root);
-  tasks::day_06::solve_part_2(input_root);
+  tasks::dispatch(input_root, &Day::Day07, &Part::First);
+  tasks::dispatch(input_root, &Day::Day07, &Part::Second);
 }
