@@ -127,6 +127,14 @@ impl WaitingArea {
     Self::new(rows, self.position_transformation)
   }
 }
+fn count_occupied_seats(area: &WaitingArea) -> usize {
+  area
+    .rows
+    .iter()
+    .flat_map(|row| row.positions.iter())
+    .filter(|&pos| *pos == Position::Occupied)
+    .count()
+}
 
 type CoordinateT = (usize, usize);
 fn is_occupied((x, y): CoordinateT, x_offset: isize, y_offset: isize, area: &Vec<Row>) -> bool {

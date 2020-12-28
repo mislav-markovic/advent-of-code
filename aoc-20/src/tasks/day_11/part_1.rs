@@ -1,4 +1,4 @@
-use super::{Position, Row, WaitingArea};
+use super::{CoordinateT, Position, Row, WaitingArea};
 
 pub(super) fn occupied_seats_after_changes_stop(rows: Vec<Row>) -> usize {
   let mut prev = WaitingArea::new(rows, pos_transform);
@@ -10,19 +10,10 @@ pub(super) fn occupied_seats_after_changes_stop(rows: Vec<Row>) -> usize {
     current = next;
   }
 
-  count_occupied_seats(&current)
+  super::count_occupied_seats(&current)
 }
 
-fn count_occupied_seats(area: &WaitingArea) -> usize {
-  area
-    .rows
-    .iter()
-    .flat_map(|row| row.positions.iter())
-    .filter(|&pos| *pos == Position::Occupied)
-    .count()
-}
-
-fn pos_transform((x, y): super::CoordinateT, pos: &Position, area: &Vec<Row>) -> Position {
+fn pos_transform((x, y): CoordinateT, pos: &Position, area: &Vec<Row>) -> Position {
   match pos {
     Position::Floor => Position::Floor,
     Position::Occupied => {
@@ -42,7 +33,7 @@ fn pos_transform((x, y): super::CoordinateT, pos: &Position, area: &Vec<Row>) ->
   }
 }
 
-fn should_become_occupied((x, y): super::CoordinateT, area: &Vec<Row>) -> bool {
+fn should_become_occupied((x, y): CoordinateT, area: &Vec<Row>) -> bool {
   let range = (-1isize..=1).collect::<Vec<_>>();
   super::product(range.as_slice(), range.as_slice())
     .iter()
@@ -50,7 +41,7 @@ fn should_become_occupied((x, y): super::CoordinateT, area: &Vec<Row>) -> bool {
     .all(|(x_offset, y_offset)| !super::is_occupied((x, y), *x_offset, *y_offset, area))
 }
 
-fn should_become_empty((x, y): super::CoordinateT, area: &Vec<Row>) -> bool {
+fn should_become_empty((x, y): CoordinateT, area: &Vec<Row>) -> bool {
   let range = (-1isize..=1).collect::<Vec<_>>();
   let count = super::product(range.as_slice(), range.as_slice())
     .iter()
