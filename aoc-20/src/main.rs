@@ -8,6 +8,6 @@ mod tasks;
 use tasks::{Day, Part};
 fn main() {
   let input_root = "E:/Programming Projects/advent-of-code/aoc-20/input";
-  tasks::dispatch(input_root, &Day::Day11, &Part::First);
-  tasks::dispatch(input_root, &Day::Day11, &Part::Second);
+  tasks::dispatch(input_root, &Day::Day12, &Part::First);
+  tasks::dispatch(input_root, &Day::Day12, &Part::Second);
 }
