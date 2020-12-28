@@ -1,5 +1,4 @@
 use super::{Position, Row, WaitingArea};
-type CoordinateT = (usize, usize);
 
 pub(super) fn occupied_seats_after_changes_stop(rows: Vec<Row>) -> usize {
   let mut prev = WaitingArea::new(rows, pos_transform);
@@ -23,7 +22,7 @@ fn count_occupied_seats(area: &WaitingArea) -> usize {
     .count()
 }
 
-fn pos_transform((x, y): CoordinateT, pos: &Position, area: &Vec<Row>) -> Position {
+fn pos_transform((x, y): super::CoordinateT, pos: &Position, area: &Vec<Row>) -> Position {
   match pos {
     Position::Floor => Position::Floor,
     Position::Occupied => {
@@ -43,61 +42,24 @@ fn pos_transform((x, y): CoordinateT, pos: &Position, area: &Vec<Row>) -> Positi
   }
 }
 
-fn should_become_occupied((x, y): CoordinateT, area: &Vec<Row>) -> bool {
+fn should_become_occupied((x, y): super::CoordinateT, area: &Vec<Row>) -> bool {
   let range = (-1isize..=1).collect::<Vec<_>>();
-  product(range.as_slice(), range.as_slice())
+  super::product(range.as_slice(), range.as_slice())
     .iter()
     .filter(|&&tpl| tpl != (0, 0))
-    .all(|(x_offset, y_offset)| !is_occupied((x, y), *x_offset, *y_offset, area))
+    .all(|(x_offset, y_offset)| !super::is_occupied((x, y), *x_offset, *y_offset, area))
 }
 
-fn should_become_empty((x, y): CoordinateT, area: &Vec<Row>) -> bool {
+fn should_become_empty((x, y): super::CoordinateT, area: &Vec<Row>) -> bool {
   let range = (-1isize..=1).collect::<Vec<_>>();
-  let count = product(range.as_slice(), range.as_slice())
+  let count = super::product(range.as_slice(), range.as_slice())
     .iter()
     .filter(|&&tpl| tpl != (0, 0))
-    .filter(|(x_offset, y_offset)| is_occupied((x, y), *x_offset, *y_offset, area))
+    .filter(|(x_offset, y_offset)| super::is_occupied((x, y), *x_offset, *y_offset, area))
     .count();
   count >= 4usize
 }
 
-fn is_occupied((x, y): CoordinateT, x_offset: isize, y_offset: isize, area: &Vec<Row>) -> bool {
-  let y_max = area.len();
-  let x_max = area.first().unwrap().positions.len();
-  if is_valid_offset(x, x_offset, x_max) && is_valid_offset(y, y_offset, y_max) {
-    let new_x = usize_isize_addition(x, x_offset);
-    let new_y = usize_isize_addition(y, y_offset);
-    match area[new_y].positions[new_x] {
-      Position::Floor => false,
-      Position::Occupied => true,
-      Position::Empty => false,
-    }
-  } else {
-    false
-  }
-}
-
-fn is_valid_offset(coordinate: usize, offset: isize, max: usize) -> bool {
-  if offset >= 0 {
-    coordinate + (offset as usize) < max
-  } else {
-    coordinate >= (offset.abs() as usize)
-  }
-}
-
-fn usize_isize_addition(unum: usize, inum: isize) -> usize {
-  if inum < 0 {
-    unum - (inum.abs() as usize)
-  } else {
-    unum + (inum as usize)
-  }
-}
-
-fn product(xs: &[isize], ys: &[isize]) -> Vec<(isize, isize)> {
-  xs.iter()
-    .flat_map(|&x| ys.iter().clone().map(move |&y| (x, y)))
-    .collect()
-}
 #[cfg(test)]
 mod tests {
   use std::str::FromStr;

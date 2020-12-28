@@ -128,6 +128,44 @@ impl WaitingArea {
   }
 }
 
+type CoordinateT = (usize, usize);
+fn is_occupied((x, y): CoordinateT, x_offset: isize, y_offset: isize, area: &Vec<Row>) -> bool {
+  let y_max = area.len();
+  let x_max = area.first().unwrap().positions.len();
+  if is_valid_offset(x, x_offset, x_max) && is_valid_offset(y, y_offset, y_max) {
+    let new_x = usize_isize_addition(x, x_offset);
+    let new_y = usize_isize_addition(y, y_offset);
+    match area[new_y].positions[new_x] {
+      Position::Floor => false,
+      Position::Occupied => true,
+      Position::Empty => false,
+    }
+  } else {
+    false
+  }
+}
+
+fn is_valid_offset(coordinate: usize, offset: isize, max: usize) -> bool {
+  if offset >= 0 {
+    coordinate + (offset as usize) < max
+  } else {
+    coordinate >= (offset.abs() as usize)
+  }
+}
+
+fn usize_isize_addition(unum: usize, inum: isize) -> usize {
+  if inum < 0 {
+    unum - (inum.abs() as usize)
+  } else {
+    unum + (inum as usize)
+  }
+}
+
+fn product(xs: &[isize], ys: &[isize]) -> Vec<(isize, isize)> {
+  xs.iter()
+    .flat_map(|&x| ys.iter().clone().map(move |&y| (x, y)))
+    .collect()
+}
 pub fn solve_part_1(input_root: &str) {
   let result = part_1::occupied_seats_after_changes_stop(get_data(input_root));
   println!(
