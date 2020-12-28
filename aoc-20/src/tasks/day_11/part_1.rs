@@ -33,12 +33,28 @@ fn pos_transform((x, y): CoordinateT, pos: &Position, area: &Vec<Row>) -> Positi
   }
 }
 
+fn is_occupied((x, y): CoordinateT, x_offset: isize, y_offset: isize, area: &Vec<Row>) -> bool {
+  let y_max = area.len();
+  let x_max = area.first().unwrap().positions.len();
+  if super::is_valid_offset(x, x_offset, x_max) && super::is_valid_offset(y, y_offset, y_max) {
+    let new_x = super::usize_isize_addition(x, x_offset);
+    let new_y = super::usize_isize_addition(y, y_offset);
+    match area[new_y].positions[new_x] {
+      Position::Floor => false,
+      Position::Occupied => true,
+      Position::Empty => false,
+    }
+  } else {
+    false
+  }
+}
+
 fn should_become_occupied((x, y): CoordinateT, area: &Vec<Row>) -> bool {
   let range = (-1isize..=1).collect::<Vec<_>>();
   super::product(range.as_slice(), range.as_slice())
     .iter()
     .filter(|&&tpl| tpl != (0, 0))
-    .all(|(x_offset, y_offset)| !super::is_occupied((x, y), *x_offset, *y_offset, area))
+    .all(|(x_offset, y_offset)| !is_occupied((x, y), *x_offset, *y_offset, area))
 }
 
 fn should_become_empty((x, y): CoordinateT, area: &Vec<Row>) -> bool {
@@ -46,7 +62,7 @@ fn should_become_empty((x, y): CoordinateT, area: &Vec<Row>) -> bool {
   let count = super::product(range.as_slice(), range.as_slice())
     .iter()
     .filter(|&&tpl| tpl != (0, 0))
-    .filter(|(x_offset, y_offset)| super::is_occupied((x, y), *x_offset, *y_offset, area))
+    .filter(|(x_offset, y_offset)| is_occupied((x, y), *x_offset, *y_offset, area))
     .count();
   count >= 4usize
 }

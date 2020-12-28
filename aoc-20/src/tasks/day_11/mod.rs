@@ -1,7 +1,5 @@
 use std::{fmt, fmt::Display, str::FromStr};
 
-use fmt::write;
-
 mod part_1;
 mod part_2;
 
@@ -127,6 +125,7 @@ impl WaitingArea {
     Self::new(rows, self.position_transformation)
   }
 }
+
 fn count_occupied_seats(area: &WaitingArea) -> usize {
   area
     .rows
@@ -137,21 +136,6 @@ fn count_occupied_seats(area: &WaitingArea) -> usize {
 }
 
 type CoordinateT = (usize, usize);
-fn is_occupied((x, y): CoordinateT, x_offset: isize, y_offset: isize, area: &Vec<Row>) -> bool {
-  let y_max = area.len();
-  let x_max = area.first().unwrap().positions.len();
-  if is_valid_offset(x, x_offset, x_max) && is_valid_offset(y, y_offset, y_max) {
-    let new_x = usize_isize_addition(x, x_offset);
-    let new_y = usize_isize_addition(y, y_offset);
-    match area[new_y].positions[new_x] {
-      Position::Floor => false,
-      Position::Occupied => true,
-      Position::Empty => false,
-    }
-  } else {
-    false
-  }
-}
 
 fn is_valid_offset(coordinate: usize, offset: isize, max: usize) -> bool {
   if offset >= 0 {
@@ -183,7 +167,11 @@ pub fn solve_part_1(input_root: &str) {
 }
 
 pub fn solve_part_2(input_root: &str) {
-  println!("(Day 11, Part 2) Not Implemented");
+  let result = part_2::count_occupied_seats_after_changes_stop(get_data(input_root));
+  println!(
+    "(Day 11, Part 2) Number of occupied seats after changes stop {}",
+    result
+  );
 }
 
 fn get_data(root: &str) -> Vec<Row> {
