@@ -47,7 +47,8 @@ pub fn solve_part_1(input_root: &str) {
 }
 
 pub fn solve_part_2(input_root: &str) {
-  println!("(Day 13, Part 2) Not Implemented");
+  let result = part_2::earliest_timestamp(get_data(input_root));
+  println!("(Day 13, Part 2) Result = {}", result);
 }
 
 fn get_data(root: &str) -> Schedule {
