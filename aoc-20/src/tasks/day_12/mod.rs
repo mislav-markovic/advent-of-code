@@ -72,5 +72,10 @@ pub fn solve_part_1(input_root: &str) {
 }
 
 pub fn solve_part_2(input_root: &str) {
-  println!("(Day 12, Part 2) Not Implemented");
+  let result =
+    part_2::manhattan_distance_after_waypoint_navigation(get_data(input_root), (0, 0), (10, 1));
+  println!(
+    "(Day 12, Part 2) Manhattan distance from start after following navigation course is {}",
+    result
+  );
 }

@@ -39,9 +39,9 @@ fn rotate_waypoint(waypoint: &PositionT, rotation: &RotateDirection) -> Position
 fn rotate_left(waypoint: &PositionT, dist: &RotationDistance) -> PositionT {
   match dist.0 {
     0 => *waypoint,
-    90 => (-1 * waypoint.0, waypoint.1),
+    90 => (-1 * waypoint.1, waypoint.0),
     180 => (-1 * waypoint.0, -1 * waypoint.1),
-    270 => (waypoint.0, -1 * waypoint.1),
+    270 => (waypoint.1, -1 * waypoint.0),
     _ => panic!("Cant rotate waypoint"),
   }
 }
@@ -75,9 +75,40 @@ F11"
       .map(|l| l.parse::<Action>().unwrap())
       .collect::<Vec<_>>();
     let start = (0isize, 0isize);
-    let waypoint = (1, 10);
+    let waypoint = (10, 1);
 
     let result = super::manhattan_distance_after_waypoint_navigation(actions, start, waypoint);
     assert_eq!(286usize, result);
+  }
+
+  #[test]
+  fn step_by_step_ship_and_waypoint_movements() {
+    let forward_10 = MoveDistance(10);
+    let north = CardinalDirection::North(MoveDistance(3));
+    let forward_7 = MoveDistance(7);
+    let forward_11 = MoveDistance(11);
+    let right_rotate = RotateDirection::Right(RotationDistance(90));
+    let mut ship: PositionT = (0, 0);
+    let mut waypoint: PositionT = (10, 1);
+
+    ship = super::move_ship_towards_waypoint(&ship, &waypoint, &forward_10);
+    assert_eq!((100, 10), ship);
+    assert_eq!((10, 1), waypoint);
+
+    waypoint = super::move_waypoint(&waypoint, &north);
+    assert_eq!((100, 10), ship);
+    assert_eq!((10, 4), waypoint);
+
+    ship = super::move_ship_towards_waypoint(&ship, &waypoint, &forward_7);
+    assert_eq!((170, 38), ship);
+    assert_eq!((10, 4), waypoint);
+
+    waypoint = super::rotate_waypoint(&waypoint, &right_rotate);
+    assert_eq!((170, 38), ship);
+    assert_eq!((4, -10), waypoint);
+
+    ship = super::move_ship_towards_waypoint(&ship, &waypoint, &forward_11);
+    assert_eq!((214, -72), ship);
+    assert_eq!((4, -10), waypoint);
   }
 }
