@@ -31,11 +31,9 @@ impl FromStr for MemStore {
     Ok(Self { address, val })
   }
 }
-
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct Mask {
-  or_mask: u64,
-  and_mask: u64,
+  string_mask: String,
 }
 
 impl FromStr for Mask {
@@ -49,42 +47,9 @@ impl FromStr for Mask {
 
 impl Mask {
   fn new(string_mask: &str) -> Self {
-    let mut or_mask = 0u64;
-    let mut and_mask = 0u64;
-
-    let one_mask = u64::MAX >> (type_size_in_bits::<u64>() - 1);
-    let zero_mask = u64::MAX << 1;
-
-    for symbol in string_mask.trim().chars() {
-      match symbol {
-        'X' => {
-          or_mask <<= 1;
-          and_mask <<= 1;
-
-          and_mask |= one_mask;
-          or_mask &= zero_mask;
-        }
-        '1' => {
-          or_mask <<= 1;
-          and_mask <<= 1;
-
-          and_mask |= one_mask;
-          or_mask |= one_mask;
-        }
-        '0' => {
-          or_mask <<= 1;
-          and_mask <<= 1;
-
-          and_mask &= zero_mask;
-          or_mask |= one_mask;
-        }
-        _ => {}
-      }
+    Self {
+      string_mask: string_mask.trim().to_string(),
     }
-    Self { or_mask, and_mask }
-  }
-  fn apply_mask(&self, target: &u64) -> u64 {
-    (target | self.or_mask) & self.and_mask
   }
 }
 
@@ -105,21 +70,24 @@ impl FromStr for Instr {
   }
 }
 
+type DecoderT = fn(&Mask, &MemStore) -> Vec<(u64, u64)>;
 struct Program {
   memory: HashMap<u64, u64>, // (address, val)
   active_mask: Mask,
   instructions: Vec<Instr>,
   bit_size: usize,
+  decoder: DecoderT,
 }
 
 impl Program {
-  fn new(mut instructions: Vec<Instr>) -> Self {
+  fn new(mut instructions: Vec<Instr>, decoder: DecoderT) -> Self {
     if let Instr::Mask(active_mask) = instructions.remove(0) {
       Self {
         memory: HashMap::new(),
         active_mask,
         instructions,
         bit_size: 36,
+        decoder,
       }
     } else {
       panic!("Invalid instruction set for program")
@@ -127,14 +95,13 @@ impl Program {
   }
 
   fn store(&mut self, mem: &MemStore) {
-    self.memory.insert(
-      mem.address,
-      truncate(&self.bit_size, &self.active_mask.apply_mask(&mem.val)),
-    );
+    for (k, v) in (self.decoder)(&self.active_mask, mem) {
+      self.memory.insert(k, truncate(&self.bit_size, &v));
+    }
   }
 
   fn set_mask(&mut self, mask: &Mask) {
-    self.active_mask = *mask;
+    self.active_mask = mask.clone();
   }
 
   fn execute_all(&mut self) {
@@ -165,45 +132,18 @@ fn type_size_in_bits<T>() -> usize {
 }
 
 pub fn solve_part_1(input_root: &str) {
-  let mut program = get_data(input_root);
-  program.execute_all();
-  println!("(Day 14, Part 1) Memory sum = {}", program.memory_sum());
+  let result = part_1::memory_sum_after_execution(get_data(input_root));
+  println!("(Day 14, Part 1) Memory sum = {}", result);
 }
 
 pub fn solve_part_2(input_root: &str) {
   println!("(Day 14, Part 2) Not Implemented");
 }
 
-fn get_data(root: &str) -> Program {
+fn get_data(root: &str) -> Vec<Instr> {
   use crate::common::file_reader as fr;
   let path = format!("{}/day_14.input.txt", root);
   println!("Reading input from '{}'", path);
 
-  let instructions = fr::parse_input::<Instr>(&path, "\r\n");
-  Program::new(instructions)
-}
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  fn get_data() -> String {
-    "mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
-mem[8] = 11
-mem[7] = 101
-mem[8] = 0"
-      .to_string()
-  }
-  #[test]
-  fn memory_sum_is_correct_after_execution() {
-    let mut program = Program::new(
-      get_data()
-        .lines()
-        .map(|l| l.parse::<Instr>().unwrap())
-        .collect::<Vec<_>>(),
-    );
-
-    program.execute_all();
-    let result = program.memory_sum();
-    assert_eq!(165, result);
-  }
+  fr::parse_input::<Instr>(&path, "\r\n")
 }
