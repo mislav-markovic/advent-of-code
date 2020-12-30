@@ -52,7 +52,9 @@ pub fn solve_part_1(input_root: &str) {
 }
 
 pub fn solve_part_2(input_root: &str) {
-  println!("(Day 15, Part 2) Not Implemented");
+  let result =
+    part_1::number_played_at_turn(Game::from_seed(get_data(input_root).as_slice()), &30000000);
+  println!("(Day 15, Part 2) Number on turn 30000000 was {}", result);
 }
 
 fn get_data(root: &str) -> Vec<usize> {
