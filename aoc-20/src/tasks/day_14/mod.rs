@@ -137,7 +137,8 @@ pub fn solve_part_1(input_root: &str) {
 }
 
 pub fn solve_part_2(input_root: &str) {
-  println!("(Day 14, Part 2) Not Implemented");
+  let result = part_2::memory_sum_after_execution(get_data(input_root));
+  println!("(Day 14, Part 2) Memory sum = {}", result);
 }
 
 fn get_data(root: &str) -> Vec<Instr> {
