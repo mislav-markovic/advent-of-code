@@ -8,17 +8,18 @@ pub(super) fn earliest_timestamp(schedule: Schedule) -> u64 {
     .filter_map(|(i, bus)| bus.id.map(|id| (id as u64, i as u64)))
     .collect::<Vec<_>>();
 
-  let &(max_id, time_offset) = ids_offsets
-    .iter()
-    .filter(|(id, i)| id > i)
-    .max_by_key(|(id, _)| id)
-    .unwrap();
+  let &(first_id, _) = ids_offsets.first().unwrap();
+  let mut timestamp = 0;
+  let mut inc = first_id;
 
-  let mut timestamp = max_id;
-  while !is_solution(&ids_offsets, &(timestamp - time_offset)) {
-    timestamp += max_id;
+  for (id, offset) in ids_offsets.into_iter().skip(1) {
+    while (timestamp + offset) % id != 0 {
+      timestamp += inc;
+    }
+    inc *= id;
   }
-  timestamp - time_offset
+
+  timestamp
 }
 
 fn is_solution(schedule: &Vec<(u64, u64)>, candidate: &u64) -> bool {
