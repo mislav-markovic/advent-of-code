@@ -1,4 +1,7 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{
+  collections::{HashMap, HashSet},
+  str::FromStr,
+};
 
 mod part_1;
 mod part_2;
@@ -70,18 +73,14 @@ impl Grid {
         v.push(*pos);
         v.into_iter()
       })
-      .collect::<Vec<_>>();
+      .collect::<HashSet<_>>();
 
+    let mut diff: Vec<(Position, ConwayCube)> = Vec::new();
     for pos in check_iter.into_iter() {
       let neighbours = pos
         .neighbours()
         .into_iter()
-        .map(|n_pos| {
-          self
-            .cubes
-            .get(&n_pos)
-            .unwrap_or(&ConwayCube { active: false })
-        })
+        .filter_map(|n_pos| self.cubes.get(&n_pos))
         .collect::<Vec<_>>();
 
       let current_cube = self
@@ -97,13 +96,17 @@ impl Grid {
       };
 
       if should_flip {
-        self.cubes.insert(
+        diff.push((
           pos,
           ConwayCube {
             active: !current_cube.active,
           },
-        );
+        ));
       }
+    }
+
+    for (pos, cube) in diff {
+      self.cubes.insert(pos, cube);
     }
   }
 }
@@ -200,7 +203,7 @@ fn get_data(root: &str) -> Vec<Row> {
   let path = format!("{}/day_17.input.txt", root);
   println!("Reading input from '{}'", path);
 
-  fr::parse_input::<Row>(&path, "")
+  fr::parse_input::<Row>(&path, "\r\n")
 }
 
 struct Row {
@@ -218,5 +221,44 @@ impl FromStr for Row {
         .map(|c| c.to_string().parse::<ConwayCube>().unwrap())
         .collect::<Vec<_>>(),
     })
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn correct_number_of_position_neighbours_generated() {
+    let pos = Position::new(-100, 100, 50);
+    let neighbours = pos.neighbours();
+
+    assert_eq!(26, neighbours.len());
+    assert!(!neighbours.contains(&pos));
+  }
+
+  #[test]
+  fn position_doesnt_generate_duplicate_neighbours() {
+    let pos = Position::new(-100, 100, 50);
+    let neighbours = pos.neighbours().into_iter().collect::<HashSet<_>>();
+
+    assert_eq!(26, neighbours.len());
+    assert!(!neighbours.contains(&pos));
+  }
+
+  #[test]
+  fn position_generate_correct_neighbours() {
+    let pos = Position::new(-100, 100, 50);
+    let neighbours = pos.neighbours().into_iter().collect::<HashSet<_>>();
+
+    assert!(neighbours
+      .iter()
+      .all(|n| abs_diff_less_than(&n.x, &pos.x, 2)
+        && abs_diff_less_than(&n.y, &pos.y, 2)
+        && abs_diff_less_than(&n.z, &pos.z, 2)));
+  }
+
+  fn abs_diff_less_than(a: &isize, b: &isize, less_than: isize) -> bool {
+    (a - b).abs() < less_than
   }
 }

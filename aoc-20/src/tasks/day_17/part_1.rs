@@ -8,7 +8,7 @@ pub(super) fn boot_cycle(starting_rows: Vec<Row>, boot_cycle_length: usize) -> u
     .build()
     .unwrap();
 
-  for _ in 0..boot_cycle_length {
+  for i in 0..boot_cycle_length {
     grid.advance_time();
   }
   grid.active_cubes()
@@ -26,74 +26,87 @@ fn activation_fn(cube: &ConwayCube, neighbours: &[&ConwayCube]) -> bool {
 fn deactivation_fn(cube: &ConwayCube, neighbours: &[&ConwayCube]) -> bool {
   if cube.active {
     let active_count = neighbours.iter().filter(|c| c.active).count();
-    active_count == 2 || active_count == 3
+    !(active_count == 2 || active_count == 3)
   } else {
     false
   }
 }
 
-fn find_bounding_cube(positions: &[&Position]) -> BoundingCube {
-  let mut x_min = isize::MAX;
-  let mut x_max = isize::MIN;
+#[cfg(test)]
+mod tests {
+  use super::*;
 
-  let mut y_min = isize::MAX;
-  let mut y_max = isize::MIN;
-
-  let mut z_min = isize::MAX;
-  let mut z_max = isize::MIN;
-
-  for position in positions {
-    use std::cmp;
-    x_min = cmp::min(position.x, x_min);
-    x_max = cmp::max(position.x, x_max);
-
-    y_min = cmp::min(position.y, y_min);
-    y_max = cmp::max(position.y, y_max);
-
-    z_min = cmp::min(position.z, z_min);
-    z_max = cmp::max(position.z, z_max);
+  fn get_data() -> String {
+    ".#.
+..#
+###"
+      .to_string()
   }
 
-  BoundingCube::new(
-    MinMax::new(x_min - 1, x_max + 1),
-    MinMax::new(y_min - 1, y_max + 1),
-    MinMax::new(z_min - 1, z_max + 1),
-  )
-}
-
-struct MinMax {
-  min: isize,
-  max: isize,
-}
-
-impl MinMax {
-  fn new(min: isize, max: isize) -> Self {
-    Self { min, max }
+  fn get_data_real() -> String {
+    "##...#.#
+#..##..#
+..#.####
+.#..#...
+########
+######.#
+.####..#
+.###.#.."
+      .to_string()
   }
 
-  fn in_range(&self, val: &isize) -> bool {
-    val >= &self.min && val <= &self.max
-  }
-}
+  #[test]
+  fn parse_and_active_cube_count_works() {
+    let rows = get_data_real()
+      .lines()
+      .map(|l| l.parse::<super::super::Row>().unwrap())
+      .collect::<Vec<_>>();
+    let result = super::boot_cycle(rows, 0);
 
-struct BoundingCube {
-  x_minmax: MinMax,
-  y_minmax: MinMax,
-  z_minmax: MinMax,
-}
-
-impl BoundingCube {
-  fn new(x_minmax: MinMax, y_minmax: MinMax, z_minmax: MinMax) -> Self {
-    Self {
-      x_minmax,
-      y_minmax,
-      z_minmax,
-    }
+    assert_eq!(39usize, result);
   }
 
-  fn contains(&self, pos: &Position) -> bool {
-    self.x_minmax.in_range(&pos.x)
-      && self.y_minmax.in_range(&pos.y)
-      && self.z_minmax.in_range(&pos.z)
+  #[test]
+  fn boot_cycle_with_0_turns_produces_correct_number_of_active_cubes() {
+    let rows = get_data()
+      .lines()
+      .map(|l| l.parse::<super::super::Row>().unwrap())
+      .collect::<Vec<_>>();
+    let result = super::boot_cycle(rows, 0);
+
+    assert_eq!(5usize, result);
+  }
+
+  #[test]
+  fn boot_cycle_with_1_turns_produces_correct_number_of_active_cubes() {
+    let rows = get_data()
+      .lines()
+      .map(|l| l.parse::<super::super::Row>().unwrap())
+      .collect::<Vec<_>>();
+    let result = super::boot_cycle(rows, 1);
+
+    assert_eq!(11usize, result);
+  }
+
+  #[test]
+  fn boot_cycle_with_2_turns_produces_correct_number_of_active_cubes() {
+    let rows = get_data()
+      .lines()
+      .map(|l| l.parse::<super::super::Row>().unwrap())
+      .collect::<Vec<_>>();
+    let result = super::boot_cycle(rows, 2);
+
+    assert_eq!(21usize, result);
+  }
+
+  #[test]
+  fn boot_cycle_with_6_turns_produces_correct_number_of_active_cubes() {
+    let rows = get_data()
+      .lines()
+      .map(|l| l.parse::<super::super::Row>().unwrap())
+      .collect::<Vec<_>>();
+    let result = super::boot_cycle(rows, 6);
+
+    assert_eq!(112usize, result);
   }
 }
