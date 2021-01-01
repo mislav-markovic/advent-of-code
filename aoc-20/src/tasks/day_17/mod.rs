@@ -35,14 +35,49 @@ impl Position {
     result
   }
 }
+
+type TransformT = fn(&ConwayCube, &[&Position]) -> bool;
 struct Grid {
   cubes: HashMap<Position, ConwayCube>,
+  activation_fn: TransformT,
+  deactivation_fn: TransformT,
 }
 
 impl Grid {
-  fn from_rows(rows: Vec<Row>) -> Self {
+  fn new(
+    cubes: HashMap<Position, ConwayCube>,
+    activation_fn: TransformT,
+    deactivation_fn: TransformT,
+  ) -> Self {
     Self {
-      cubes: rows
+      cubes,
+      activation_fn,
+      deactivation_fn,
+    }
+  }
+
+  fn active_cubes(&self) -> usize {
+    self.cubes.values().filter(|cube| cube.active).count()
+  }
+}
+struct GridBuilder {
+  cubes: Option<HashMap<Position, ConwayCube>>,
+  activation_fn: Option<TransformT>,
+  deactivation_fn: Option<TransformT>,
+}
+
+impl GridBuilder {
+  fn new() -> Self {
+    Self {
+      cubes: None,
+      activation_fn: None,
+      deactivation_fn: None,
+    }
+  }
+
+  fn with_rows(&mut self, rows: Vec<Row>) -> &mut Self {
+    self.cubes = Some(
+      rows
         .into_iter()
         .enumerate()
         .flat_map(move |(y, row)| {
@@ -53,9 +88,33 @@ impl Grid {
             .map(move |(x, cube)| (Position::new(x as isize, y as isize, 0isize), cube))
         })
         .collect::<HashMap<_, _>>(),
-    }
+    );
+    self
+  }
+
+  fn with_activation_fn(&mut self, func: TransformT) -> &mut Self {
+    self.activation_fn = Some(func);
+    self
+  }
+
+  fn with_deactivation_fn(&mut self, func: TransformT) -> &mut Self {
+    self.deactivation_fn = Some(func);
+    self
+  }
+
+  fn build(self) -> Result<Grid, String> {
+    let cubes = self.cubes.ok_or("Starting cubes not set!".to_string())?;
+    let activation_fn = self
+      .activation_fn
+      .ok_or("Activation function not set!".to_string())?;
+    let deactivation_fn = self
+      .deactivation_fn
+      .ok_or("Deactivation function not set".to_string())?;
+
+    Ok(Grid::new(cubes, activation_fn, deactivation_fn))
   }
 }
+
 struct ConwayCube {
   active: bool,
 }
@@ -87,12 +146,12 @@ pub fn solve_part_2(input_root: &str) {
   println!("(Day 17, Part 2) Not Implemented");
 }
 
-fn get_data(root: &str) -> Grid {
+fn get_data(root: &str) -> Vec<Row> {
   use crate::common::file_reader as fr;
   let path = format!("{}/day_17.input.txt", root);
   println!("Reading input from '{}'", path);
 
-  Grid::from_rows(fr::parse_input::<Row>(&path, ""))
+  fr::parse_input::<Row>(&path, "")
 }
 
 struct Row {
