@@ -3,6 +3,7 @@ use std::{collections::HashMap, str::FromStr};
 mod part_1;
 mod part_2;
 
+#[derive(Copy, Clone)]
 struct Range {
   start: usize,
   end: usize,
@@ -125,7 +126,9 @@ pub fn solve_part_1(input_root: &str) {
 }
 
 pub fn solve_part_2(input_root: &str) {
-  println!("(Day 16, Part 2) Not Implemented");
+  let system = get_data(input_root);
+  let result = part_2::departure_validation(system);
+  println!("(Day 16, Part 2) Departure validation: {}", result);
 }
 
 fn get_data(root: &str) -> TicketSystem {
