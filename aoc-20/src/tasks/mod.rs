@@ -14,6 +14,7 @@ mod day_13;
 mod day_14;
 mod day_15;
 mod day_16;
+mod day_17;
 
 pub fn dispatch(input_root: &str, day: &Day, part: &Part) {
   match day {
@@ -81,6 +82,10 @@ pub fn dispatch(input_root: &str, day: &Day, part: &Part) {
       Part::First => day_16::solve_part_1(input_root),
       Part::Second => day_16::solve_part_2(input_root),
     },
+    Day::Day17 => match part {
+      Part::First => day_17::solve_part_1(input_root),
+      Part::Second => day_17::solve_part_2(input_root),
+    },
   }
 }
 
@@ -101,6 +106,7 @@ pub enum Day {
   Day14,
   Day15,
   Day16,
+  Da17,
 }
 
 pub enum Part {
