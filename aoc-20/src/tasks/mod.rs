@@ -106,7 +106,7 @@ pub enum Day {
   Day14,
   Day15,
   Day16,
-  Da17,
+  Day17,
 }
 
 pub enum Part {
