@@ -36,7 +36,7 @@ impl Position {
   }
 }
 
-type TransformT = fn(&ConwayCube, &[&Position]) -> bool;
+type TransformT = fn(&ConwayCube, &[&ConwayCube]) -> bool;
 struct Grid {
   cubes: HashMap<Position, ConwayCube>,
   activation_fn: TransformT,
@@ -59,6 +59,53 @@ impl Grid {
   fn active_cubes(&self) -> usize {
     self.cubes.values().filter(|cube| cube.active).count()
   }
+
+  fn advance_time(&mut self) {
+    let check_iter = self
+      .cubes
+      .iter()
+      .filter(|(_, cube)| cube.active)
+      .flat_map(|(pos, _)| {
+        let mut v = pos.neighbours();
+        v.push(*pos);
+        v.into_iter()
+      })
+      .collect::<Vec<_>>();
+
+    for pos in check_iter.into_iter() {
+      let neighbours = pos
+        .neighbours()
+        .into_iter()
+        .map(|n_pos| {
+          self
+            .cubes
+            .get(&n_pos)
+            .unwrap_or(&ConwayCube { active: false })
+        })
+        .collect::<Vec<_>>();
+
+      let current_cube = self
+        .cubes
+        .get(&pos)
+        .unwrap_or(&ConwayCube { active: false })
+        .clone();
+
+      let should_flip = if current_cube.active {
+        (self.deactivation_fn)(&current_cube, &neighbours)
+      } else {
+        (self.activation_fn)(&current_cube, &neighbours)
+      };
+
+      if should_flip {
+        self.cubes.insert(
+          pos,
+          ConwayCube {
+            active: !current_cube.active,
+          },
+        );
+      }
+    }
+  }
 }
 struct GridBuilder {
   cubes: Option<HashMap<Position, ConwayCube>>,
@@ -75,7 +122,7 @@ impl GridBuilder {
     }
   }
 
-  fn with_rows(&mut self, rows: Vec<Row>) -> &mut Self {
+  fn with_rows(mut self, rows: Vec<Row>) -> Self {
     self.cubes = Some(
       rows
         .into_iter()
@@ -92,12 +139,12 @@ impl GridBuilder {
     self
   }
 
-  fn with_activation_fn(&mut self, func: TransformT) -> &mut Self {
+  fn with_activation_fn(mut self, func: TransformT) -> Self {
     self.activation_fn = Some(func);
     self
   }
 
-  fn with_deactivation_fn(&mut self, func: TransformT) -> &mut Self {
+  fn with_deactivation_fn(mut self, func: TransformT) -> Self {
     self.deactivation_fn = Some(func);
     self
   }
@@ -115,6 +162,7 @@ impl GridBuilder {
   }
 }
 
+#[derive(Clone, Copy)]
 struct ConwayCube {
   active: bool,
 }
@@ -139,7 +187,8 @@ impl FromStr for ConwayCube {
 }
 
 pub fn solve_part_1(input_root: &str) {
-  println!("(Day 17, Part 1) Not Implemented");
+  let result = part_1::boot_cycle(get_data(input_root), 6);
+  println!("(Day 17, Part 1) Active cubes after boot cycle: {}", result);
 }
 
 pub fn solve_part_2(input_root: &str) {
