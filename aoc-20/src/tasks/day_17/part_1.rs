@@ -1,4 +1,4 @@
-use super::{ConwayCube, Grid, GridBuilder, Position, Row};
+use super::{ConwayCube, GridBuilder, Row};
 
 pub(super) fn boot_cycle(starting_rows: Vec<Row>, boot_cycle_length: usize) -> usize {
   let mut grid = GridBuilder::new()
@@ -8,7 +8,7 @@ pub(super) fn boot_cycle(starting_rows: Vec<Row>, boot_cycle_length: usize) -> u
     .build()
     .unwrap();
 
-  for i in 0..boot_cycle_length {
+  for _ in 0..boot_cycle_length {
     grid.advance_time();
   }
   grid.active_cubes()
@@ -34,8 +34,6 @@ fn deactivation_fn(cube: &ConwayCube, neighbours: &[&ConwayCube]) -> bool {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-
   fn get_data() -> String {
     ".#.
 ..#
