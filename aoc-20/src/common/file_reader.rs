@@ -14,3 +14,11 @@ where
     })
     .collect::<Vec<TResult>>()
 }
+
+pub fn read_unparsed(filename: &str, delimiter: &str) -> Vec<String> {
+  fs::read_to_string(filename)
+    .unwrap()
+    .split(delimiter)
+    .map(|s| s.to_string())
+    .collect::<Vec<_>>()
+}
