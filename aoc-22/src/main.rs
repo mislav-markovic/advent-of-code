@@ -1,13 +1,16 @@
-use crate::{day_exec::DayExecutor, days::day1::Day1};
+use crate::{
+    day_exec::DayExecutor,
+    days::{day1::Day1, day2::Day2},
+};
 
 pub mod day_exec;
 pub mod days;
 
 fn main() {
     let input =
-        std::fs::read_to_string("./input/day1.part1.part2.txt").expect("Failed to read input file");
+        std::fs::read_to_string("./input/day2.part1.txt").expect("Failed to read input file");
 
-    let exec = Day1 {};
+    let exec = Day2 {};
     let part1_solution = exec.exec_part1(input.clone());
     let part2_solution = exec.exec_part2(input);
 
