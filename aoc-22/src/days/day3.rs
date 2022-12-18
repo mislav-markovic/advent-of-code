@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use crate::day_exec::DayExecutor;
-
 pub struct Day3;
 
 impl DayExecutor for Day3 {
@@ -13,22 +12,52 @@ impl DayExecutor for Day3 {
     }
 
     fn exec_part2(&self, input: String) -> Box<dyn std::fmt::Display> {
-        Box::new("TODO!")
+        Box::new(format!(
+            "Sum of priorities of items used as elf group badges: {}",
+            solve_part2(&input)
+        ))
     }
 }
 
-fn solve_part1(input: &str) -> u32 {
-    let rucksacks = input
+fn get_rucksacks_from_input(input: &str) -> Vec<Rucksack> {
+    input
         .lines()
         .map(|l| {
             l.parse::<Rucksack>()
                 .expect("Failed to parse line as rucksack")
         })
-        .collect::<Vec<_>>();
+        .collect::<Vec<_>>()
+}
+
+fn solve_part1(input: &str) -> u32 {
+    let rucksacks = get_rucksacks_from_input(input);
 
     rucksacks
         .iter()
         .map(|r| find_overlapping_item(r).priority)
+        .sum()
+}
+
+fn solve_part2(input: &str) -> u32 {
+    let rucksacks = get_rucksacks_from_input(input);
+
+    rucksacks[..]
+        .chunks_exact(3)
+        .map(|elf_group| {
+            if let [first, second, third] = elf_group {
+                first
+                    .items
+                    .iter()
+                    .skip_while(|firsts_item| {
+                        !(second.items.contains(&firsts_item) && third.items.contains(&firsts_item))
+                    })
+                    .next()
+                    .unwrap()
+                    .priority
+            } else {
+                unreachable!("It was not possible to chunk elfs in groups of 3")
+            }
+        })
         .sum()
 }
 
