@@ -12,7 +12,10 @@ impl DayExecutor for Day5 {
     }
 
     fn exec_part2(&self, input: String) -> Box<dyn std::fmt::Display> {
-        Box::new("TODO!")
+        Box::new(format!(
+            "After processing all instructions with new crate, top crates construct message: '{}'",
+            solve_part2(&input)
+        ))
     }
 }
 
@@ -20,7 +23,17 @@ fn solve_part1(input: &str) -> String {
     let (mut crane, instruction_set) = get_parsed_input(input);
 
     for instr in instruction_set {
-        crane.process(&instr);
+        crane.process_by_moving_single(&instr);
+    }
+
+    crane.top_message()
+}
+
+fn solve_part2(input: &str) -> String {
+    let (mut crane, instruction_set) = get_parsed_input(input);
+
+    for instr in instruction_set {
+        crane.process_by_moving_stack(&instr);
     }
 
     crane.top_message()
@@ -64,8 +77,20 @@ impl Stack {
         self.crates.pop()
     }
 
+    fn pop_n(&mut self, how_many: usize) -> Option<Vec<Crate>> {
+        if how_many > self.crates.len() {
+            None
+        } else {
+            Some(self.crates.split_off(self.crates.len() - how_many))
+        }
+    }
+
     fn push(&mut self, krate: Crate) {
         self.crates.push(krate)
+    }
+
+    fn push_n(&mut self, mut crates: Vec<Crate>) {
+        self.crates.append(&mut crates);
     }
 
     fn peek_top(&self) -> Option<&Crate> {
@@ -82,7 +107,7 @@ impl Crane {
         Self { stacks }
     }
 
-    fn process(&mut self, instr: &Instruction) {
+    fn process_by_moving_single(&mut self, instr: &Instruction) {
         let source_index = instr.from.0 - 1;
         let target_index = instr.to.0 - 1;
 
@@ -93,6 +118,17 @@ impl Crane {
 
             self.stacks[target_index].push(popped);
         }
+    }
+
+    fn process_by_moving_stack(&mut self, instr: &Instruction) {
+        let source_index = instr.from.0 - 1;
+        let target_index = instr.to.0 - 1;
+
+        let popped = self.stacks[source_index]
+            .pop_n(instr.how_many)
+            .expect("Instructions made us pop from stack more crates  than there exist on stack");
+
+        self.stacks[target_index].push_n(popped);
     }
 
     fn top_message(&self) -> String {
