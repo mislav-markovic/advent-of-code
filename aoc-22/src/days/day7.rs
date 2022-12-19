@@ -3,22 +3,28 @@ use std::str::FromStr;
 use crate::day_exec::DayExecutor;
 pub struct Day7;
 
+const MIN_SEARCH_SIZE: usize = 100000;
+const FS_TOTAL_SPACE: usize = 70000000;
+const FS_UPDATE_SPACE_REQ: usize = 30000000;
+
 impl DayExecutor for Day7 {
     fn exec_part1(&self, input: String) -> Box<dyn std::fmt::Display> {
         Box::new(format!(
-            "Sum of all dir sizes under 100000: {}",
+            "Sum of all dir sizes under {}: {}",
+            MIN_SEARCH_SIZE,
             solve_part1(&input)
         ))
     }
 
     fn exec_part2(&self, input: String) -> Box<dyn std::fmt::Display> {
-        Box::new("TODO")
+        Box::new(format!(
+            "Smallest dir that can be deleted so update has enough space has size of {}",
+            solve_part2(&input)
+        ))
     }
 }
 
-fn solve_part1(input: &str) -> usize {
-    let mut fs = Filesystem::new();
-
+fn process_input(fs: &mut Filesystem, input: &str) {
     for line in input.lines() {
         if line.starts_with('$') {
             let cmd = line
@@ -40,10 +46,34 @@ fn solve_part1(input: &str) -> usize {
             }
         }
     }
+}
+
+fn solve_part1(input: &str) -> usize {
+    let mut fs = Filesystem::new();
+
+    process_input(&mut fs, input);
+
     fs.dir_sizes()
         .into_iter()
-        .filter(|size| *size < 100000)
+        .filter(|size| *size < MIN_SEARCH_SIZE)
         .sum()
+}
+
+fn solve_part2(input: &str) -> usize {
+    let mut fs = Filesystem::new();
+
+    process_input(&mut fs, input);
+
+    fs.change_dir(CdArg::Root);
+    let (_, space_occupied) = fs.current_dir();
+    let free_space = FS_TOTAL_SPACE - space_occupied;
+    let min_delete_size = FS_UPDATE_SPACE_REQ - free_space;
+
+    fs.dir_sizes()
+        .into_iter()
+        .filter(|dir_size| *dir_size >= min_delete_size)
+        .min()
+        .expect("Could not find single dir to delete")
 }
 
 enum Command {
@@ -242,6 +272,13 @@ impl Filesystem {
                 }
             }
         }
+    }
+
+    fn current_dir(&self) -> (&Dir, usize) {
+        (
+            &self.dirs[self.active_dir_idx],
+            self.dir_links[self.active_dir_idx].total_dir_size,
+        )
     }
 
     fn add_file_to_current_dir(&mut self, file: File) {
