@@ -10,7 +10,7 @@ impl DayExecutor for Day8 {
     }
 
     fn exec_part2(&self, input: String) -> Box<dyn std::fmt::Display> {
-        Box::new("TODO")
+        Box::new(format!("Highest scenic score is: {}", solve_part2(&input)))
     }
 }
 
@@ -21,12 +21,55 @@ fn solve_part1(input: &str) -> usize {
     forest.count_visible()
 }
 
+fn solve_part2(input: &str) -> usize {
+    let forest = input
+        .parse::<Forest>()
+        .expect("Failed to parse input as forest");
+    forest.most_scenic_view()
+}
+
+struct ViewingDistance {
+    view_left: usize,
+    view_right: usize,
+    view_up: usize,
+    view_down: usize,
+}
+
+impl ViewingDistance {
+    fn new() -> Self {
+        Self {
+            view_left: 0,
+            view_right: 0,
+            view_up: 0,
+            view_down: 0,
+        }
+    }
+
+    fn scenic_score(&self) -> usize {
+        self.view_down * self.view_left * self.view_right * self.view_up
+    }
+
+    fn extend_by(&mut self, in_direction: Direction, count: usize) {
+        match in_direction {
+            Direction::Up => self.view_up += count,
+            Direction::Down => self.view_down += count,
+            Direction::Left => self.view_left += count,
+            Direction::Right => self.view_right += count,
+        }
+    }
+
+    fn exted_view(&mut self, in_direction: Direction) {
+        self.extend_by(in_direction, 1);
+    }
+}
+
 struct Tree {
     height: usize,
     blocked_left: bool,
     blocked_right: bool,
     blocked_up: bool,
     blocked_down: bool,
+    view: ViewingDistance,
 }
 
 impl Tree {
@@ -37,6 +80,7 @@ impl Tree {
             blocked_right: false,
             blocked_up: false,
             blocked_down: false,
+            view: ViewingDistance::new(),
         }
     }
 
@@ -93,6 +137,15 @@ impl Forest {
             .filter(|tree| tree.is_visible())
             .count()
     }
+
+    fn most_scenic_view(&self) -> usize {
+        self.rows
+            .iter()
+            .flat_map(|row| row.0.iter())
+            .map(|t| t.view.scenic_score())
+            .max()
+            .unwrap()
+    }
 }
 
 fn update_visibilitiy_within_column(rows: &mut Vec<TreeRow>, column_idx: usize) {
@@ -101,28 +154,36 @@ fn update_visibilitiy_within_column(rows: &mut Vec<TreeRow>, column_idx: usize) 
 
         // check up
         let mut block_up = false;
+        let mut trees_seen = 0;
         for potential_blocker in rows[0..row_idx].iter().rev().map(|row| &row.0[column_idx]) {
+            trees_seen += 1;
             if tree_height <= potential_blocker.height {
                 block_up = true;
                 break;
             }
         }
 
+        let tree = &mut rows[row_idx].0[column_idx];
+        tree.view.extend_by(Direction::Up, trees_seen);
         if block_up {
-            rows[row_idx].0[column_idx].block_direction(Direction::Up);
+            tree.block_direction(Direction::Up);
         }
 
         // check down
         let mut block_down = false;
+        let mut trees_seen = 0;
         for potential_blocker in rows[row_idx + 1..].iter().map(|row| &row.0[column_idx]) {
+            trees_seen += 1;
             if tree_height <= potential_blocker.height {
                 block_down = true;
                 break;
             }
         }
 
+        let tree = &mut rows[row_idx].0[column_idx];
+        tree.view.extend_by(Direction::Down, trees_seen);
         if block_down {
-            rows[row_idx].0[column_idx].block_direction(Direction::Down);
+            tree.block_direction(Direction::Down);
         }
     }
 }
@@ -137,6 +198,7 @@ fn update_visibility_within_row(row: &mut TreeRow) {
         let tree = right.first_mut().unwrap();
 
         for potential_blocker in left.iter().rev() {
+            tree.view.exted_view(Direction::Left);
             if tree.height <= potential_blocker.height {
                 tree.block_direction(Direction::Left);
                 break;
@@ -148,6 +210,7 @@ fn update_visibility_within_row(row: &mut TreeRow) {
         let tree = left.last_mut().unwrap();
 
         for potential_blocker in right.iter() {
+            tree.view.exted_view(Direction::Right);
             if tree.height <= potential_blocker.height {
                 tree.block_direction(Direction::Right);
                 break;
