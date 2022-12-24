@@ -15,8 +15,17 @@ fn main() {
 
     let exec = Day12 {};
     let part1_solution = exec.exec_part1(input.clone());
+    // let part1_solution = exec.exec_part1(EXAMPLE.to_owned());
+
     let part2_solution = exec.exec_part2(input);
+    // let part2_solution = exec.exec_part2(EXAMPLE.to_string());
 
     println!("Part 1:\n\t{}", part1_solution);
     println!("Part 2:\n\t{}", part2_solution);
 }
+
+const EXAMPLE: &'static str = "Sabqponm
+abcryxxl
+accszExk
+acctuvwj
+abdefghi";
