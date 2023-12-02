@@ -14,3 +14,8 @@ name = "day-01"
 test = false
 bench = false
 
+[[bin]]
+name = "day-02"
+test = false
+bench = false
+
