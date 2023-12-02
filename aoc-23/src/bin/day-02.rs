@@ -63,6 +63,19 @@ impl Game {
             && max_green_pull <= rules.rule_for(&Cube::Green)
             && max_blue_pull <= rules.rule_for(&Cube::Blue)
     }
+
+    fn game_ruleset(&self) -> Ruleset {
+        let max_red_pull = max_pull_for_cube(&self.turns, &Cube::Red);
+        let max_green_pull = max_pull_for_cube(&self.turns, &Cube::Green);
+        let max_blue_pull = max_pull_for_cube(&self.turns, &Cube::Blue);
+        let rules = vec![
+            Rule::new(Cube::Red, max_red_pull),
+            Rule::new(Cube::Green, max_green_pull),
+            Rule::new(Cube::Blue, max_blue_pull),
+        ];
+
+        Ruleset::new(rules)
+    }
 }
 
 fn max_pull_for_cube(turns: &[Turn], cube: &Cube) -> u32 {
@@ -219,6 +232,10 @@ impl Ruleset {
             .cloned()
             .expect("to have rules for all cubes")
     }
+
+    fn power(&self) -> u32 {
+        self.rules.values().fold(1, |acc, e| acc * e)
+    }
 }
 fn get_games() -> Vec<Game> {
     INPUT
@@ -249,5 +266,13 @@ fn part1() {
 }
 
 fn part2() {
-    todo!();
+    let games_played: Vec<Game> = get_games();
+
+    let power_sum = games_played
+        .into_iter()
+        .map(|g| g.game_ruleset())
+        .map(|rs| rs.power())
+        .sum::<u32>();
+
+    println!("Day-02 Part02: Sum of power of rulesets is: {power_sum}");
 }
