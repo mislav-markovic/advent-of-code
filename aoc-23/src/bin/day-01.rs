@@ -12,11 +12,11 @@ zoneight234
 
 fn main() {
     println!("Day01 Hello, World!");
-    part1();
-    part2();
+    let res = day1_exec();
+    println!("{res}");
 }
 
-fn part1() {
+fn part1() -> String {
     let result = INPUT
         .lines()
         .map(|l| l.chars().filter(|c| c.is_numeric()).collect::<Vec<_>>())
@@ -31,7 +31,7 @@ fn part1() {
         .map(|num_str| num_str.parse::<u32>().expect("To be able to parse num"))
         .sum::<u32>();
 
-    println!("Day-01 Part 01 Result is: {result}");
+    format!("Day-01 Part 01 Result is: {result}")
 }
 
 static DIGIT_WORDS: phf::Map<&'static str, u8> = phf_map! {
@@ -101,9 +101,7 @@ fn extract_val(line: &str) -> u32 {
                 buf.push(c);
                 Some(d)
             } else if !is_digit_prefix(&buf) {
-                println!("Adjusting buf from {buf}");
                 adjust_buffer(&mut buf);
-                println!("Adjusted buf to {buf}");
                 None
             } else {
                 None
@@ -121,17 +119,13 @@ fn extract_val(line: &str) -> u32 {
     let val = match (first_digit, last_digit) {
         (Some(f), Some(l)) => (f * 10 + l).into(),
         (Some(d), None) => (d * 10 + d).into(),
-        _ => {
-            eprintln!("WARN: No digits in line: {line}");
-            0
-        }
+        _ => 0,
     };
 
-    println!("INFO: {val} for: {line}");
     val
 }
 
-fn part2() {
+fn part2() -> String {
     let mut sum = 0u32;
 
     let lines = INPUT.lines();
@@ -139,7 +133,13 @@ fn part2() {
         sum += extract_val(line);
     }
 
-    println!("Day-01 Part 02 Result is: {sum}");
+    format!("Day-01 Part 02 Result is: {sum}")
+}
+
+pub fn day1_exec() -> String {
+    let part1_res = part1();
+    let part2_res = part2();
+    format!("{part1_res}\n{part2_res}")
 }
 
 #[cfg(test)]

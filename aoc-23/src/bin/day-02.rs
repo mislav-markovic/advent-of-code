@@ -4,8 +4,7 @@ const INPUT: &'static str = include_str!("input2.txt");
 
 fn main() {
     println!("Day 02, Hello, World");
-    part1();
-    part2();
+    day2_exec();
 }
 
 struct Game {
@@ -275,4 +274,9 @@ fn part2() {
         .sum::<u32>();
 
     println!("Day-02 Part02: Sum of power of rulesets is: {power_sum}");
+}
+
+pub fn day2_exec() {
+    part1();
+    part2();
 }
