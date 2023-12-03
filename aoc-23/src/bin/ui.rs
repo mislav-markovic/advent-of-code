@@ -1,8 +1,25 @@
+use crossterm::event;
 use crossterm::event::DisableMouseCapture;
 use crossterm::event::EnableMouseCapture;
+use crossterm::event::Event;
+use crossterm::event::KeyCode;
 use crossterm::execute;
 use crossterm::terminal::{disable_raw_mode, LeaveAlternateScreen};
 use crossterm::terminal::{enable_raw_mode, EnterAlternateScreen};
+use ratatui::layout::Constraint;
+use ratatui::layout::Direction;
+use ratatui::layout::Layout;
+use ratatui::style::Color;
+use ratatui::style::Style;
+use ratatui::text::Line;
+use ratatui::text::Span;
+use ratatui::text::Text;
+use ratatui::widgets::Block;
+use ratatui::widgets::Borders;
+use ratatui::widgets::List;
+use ratatui::widgets::ListItem;
+use ratatui::widgets::Paragraph;
+use ratatui::Frame;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io;
 use std::ops::{Add, AddAssign, SubAssign};
@@ -46,10 +63,10 @@ impl AddAssign<usize> for Cursor {
 
 impl SubAssign<usize> for Cursor {
     fn sub_assign(&mut self, rhs: usize) {
-        if self.val > rhs {
+        if self.val >= rhs {
             self.val -= rhs;
         } else {
-            self.val = self.wrap_trashold - (rhs - self.val - 1);
+            self.val = self.wrap_trashold - (rhs - self.val);
         }
     }
 }
@@ -63,9 +80,22 @@ struct App {
 fn fake_day1() -> String {
     "Executed fake day1".to_string()
 }
+
+fn fake_day2() -> String {
+    "Executed fake day2".to_string()
+}
+
+fn fake_day3() -> String {
+    "Executed fake day3".to_string()
+}
+
 impl App {
     fn new() -> Self {
-        let available_days = vec![Day::new("Day 01".to_string(), Box::new(fake_day1))];
+        let available_days = vec![
+            Day::new("Day 01".to_string(), Box::new(fake_day1)),
+            Day::new("Day 02".to_string(), Box::new(fake_day2)),
+            Day::new("Day 03".to_string(), Box::new(fake_day3)),
+        ];
         let selected_idx = Cursor::with_threshold(available_days.len());
         let last_exec_out = String::new();
         Self {
@@ -110,10 +140,99 @@ fn teardown(mut terminal: MyTerminal) {
     terminal.show_cursor().expect("terminal show cursor");
 }
 
-fn run_app(term: &mut MyTerminal, app: &mut App) {}
+fn run_app(term: &mut MyTerminal, app: &mut App) {
+    loop {
+        term.draw(|f| ui(f, &app)).expect("terminal to draw frame");
+        if event_loop(app) {
+            break;
+        }
+    }
+}
+
+fn ui(f: &mut Frame, app: &App) {
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3), // list of days
+            Constraint::Min(1),    // exec output
+        ])
+        .split(f.size());
+
+    let title_rect = chunks[0];
+    let content_rect = chunks[1];
+
+    let content_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Length(30), // list of days
+            Constraint::Min(1),     // exec output
+        ])
+        .split(content_rect);
+    let list_rect = content_chunks[0];
+    let last_exec_rect = content_chunks[1];
+
+    let title_block = Block::default()
+        .borders(Borders::ALL)
+        .style(Style::default());
+
+    let title = Paragraph::new(Text::styled(
+        "AoC-23 Day Execution Picker",
+        Style::default().fg(Color::Green),
+    ))
+    .block(title_block);
+
+    f.render_widget(title, title_rect);
+
+    let list_block = Block::default()
+        .borders(Borders::ALL)
+        .style(Style::default());
+
+    let mut list_items = Vec::<ListItem>::new();
+
+    for (idx, day) in app.available_days.iter().enumerate() {
+        let day_style = if idx == app.selected_idx.val() {
+            Style::default().fg(Color::Yellow).bg(Color::Magenta)
+        } else {
+            Style::default().fg(Color::Yellow)
+        };
+
+        let day_span = Span::styled(day.name.clone(), day_style);
+        list_items.push(ListItem::new(Line::from(day_span)));
+    }
+
+    let list = List::new(list_items).block(list_block);
+
+    f.render_widget(list, list_rect);
+}
+
+fn event_loop(app: &mut App) -> bool {
+    loop {
+        if let Event::Key(key) = event::read().expect("to read term event") {
+            if key.kind == event::KeyEventKind::Release {
+                // Skip events that are not KeyEventKind::Press
+                continue;
+            }
+
+            match key.code {
+                KeyCode::Char('q') => {
+                    return true;
+                }
+                KeyCode::Down => app.move_selection_down(),
+                KeyCode::Up => app.move_selection_up(),
+                _ => {}
+            }
+            break;
+        }
+    }
+
+    false
+}
 
 fn main() {
     let mut term = setup();
+
+    let mut app = App::new();
+    run_app(&mut term, &mut app);
 
     teardown(term);
 }
