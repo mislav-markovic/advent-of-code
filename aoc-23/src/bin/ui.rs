@@ -203,6 +203,18 @@ fn ui(f: &mut Frame, app: &App) {
     let list = List::new(list_items).block(list_block);
 
     f.render_widget(list, list_rect);
+
+    let last_exec_block = Block::default()
+        .borders(Borders::ALL)
+        .style(Style::default());
+
+    let last_exec_content = Paragraph::new(Text::styled(
+        app.last_exec_out.clone(),
+        Style::default().fg(Color::Green),
+    ))
+    .block(last_exec_block);
+
+    f.render_widget(last_exec_content, last_exec_rect);
 }
 
 fn event_loop(app: &mut App) -> bool {
@@ -219,6 +231,7 @@ fn event_loop(app: &mut App) -> bool {
                 }
                 KeyCode::Down => app.move_selection_down(),
                 KeyCode::Up => app.move_selection_up(),
+                KeyCode::Enter => app.exec_selected(),
                 _ => {}
             }
             break;
